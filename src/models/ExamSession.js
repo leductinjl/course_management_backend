@@ -29,6 +29,7 @@ const ExamSession = sequelize.define('ExamSession', {
     }
   }
 }, {
+  tableName: 'exam_sessions',
   timestamps: true,
   createdAt: 'created_at'
 });

@@ -30,6 +30,7 @@ const CertificateRequirement = sequelize.define('CertificateRequirement', {
     }
   }
 }, {
+  tableName: 'certificate_requirements',
   timestamps: true
 });
 

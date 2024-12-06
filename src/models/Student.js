@@ -26,7 +26,8 @@ const Student = sequelize.define('Student', {
     type: DataTypes.STRING,
     defaultValue: 'active'
   }
-}, {
+}, {  
+  tableName: 'students',
   timestamps: true,
   createdAt: 'created_at'
 });

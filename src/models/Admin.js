@@ -39,6 +39,7 @@ const Admin = sequelize.define('Admin', {
     defaultValue: 'active'
   }
 }, {
+  tableName: 'admins',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'

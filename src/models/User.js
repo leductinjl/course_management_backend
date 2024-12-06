@@ -30,6 +30,7 @@ const User = sequelize.define('User', {
   },
   lastLogin: DataTypes.DATE
 }, {
+  tableName: 'users',
   timestamps: true,
   createdAt: 'created_at'
 });

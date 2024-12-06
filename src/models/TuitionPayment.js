@@ -39,6 +39,7 @@ const TuitionPayment = sequelize.define('TuitionPayment', {
   },
   notes: DataTypes.TEXT
 }, {
+  tableName: 'tuition_payments',
   timestamps: true,
   createdAt: 'payment_date'
 });

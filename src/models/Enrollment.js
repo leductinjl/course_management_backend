@@ -26,6 +26,7 @@ const Enrollment = sequelize.define('Enrollment', {
     defaultValue: 'active'
   }
 }, {
+  tableName: 'enrollments',
   timestamps: true,
   createdAt: 'enrollment_date'
 });

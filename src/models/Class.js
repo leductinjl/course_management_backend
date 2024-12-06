@@ -46,6 +46,7 @@ const Class = sequelize.define('Class', {
     }
   }
 }, {
+  tableName: 'classes',
   timestamps: true,
   createdAt: 'created_at'
 });

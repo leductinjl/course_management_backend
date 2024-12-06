@@ -28,6 +28,7 @@ const Instructor = sequelize.define('Instructor', {
     defaultValue: 'active'
   }
 }, {
+  tableName: 'instructors',
   timestamps: true,
   createdAt: 'created_at'
 });

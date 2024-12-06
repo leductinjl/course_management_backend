@@ -36,6 +36,7 @@ const CourseRequest = sequelize.define('CourseRequest', {
   },
   adminNotes: DataTypes.TEXT
 }, {
+  tableName: 'course_requests',
   timestamps: true,
   createdAt: 'created_at'
 });

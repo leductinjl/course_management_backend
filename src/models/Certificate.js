@@ -41,6 +41,7 @@ const Certificate = sequelize.define('Certificate', {
     }
   }
 }, {
+  tableName: 'certificates',
   timestamps: true
 });
 

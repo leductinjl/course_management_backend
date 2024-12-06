@@ -1,21 +1,39 @@
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const sequelize = require('./config/database');
-const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
+// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/auth', authRoutes);
-
-// Database sync
-sequelize.sync({ alter: true }).then(() => {
-  console.log('Database synced');
-}).catch(err => {
-  console.error('Error syncing database:', err);
+// Test route
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to the Course Management System API' });
 });
 
-module.exports = app;
+// Port configuration
+const PORT = process.env.PORT || 5000;
+
+// Database connection and server start
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Kết nối cơ sở dữ liệu thành công!');
+    
+    // Sync database (in development)
+    await sequelize.sync({ alter: true });
+    console.log('✅ Đã đồng bộ hóa cơ sở dữ liệu');
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server đang chạy tại cổng ${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Không thể kết nối đến cơ sở dữ liệu:', error);
+  }
+};
+
+startServer(); 

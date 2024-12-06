@@ -22,6 +22,7 @@ const AdminActivity = sequelize.define('AdminActivity', {
   affectedTable: DataTypes.STRING,
   affectedId: DataTypes.UUID
 }, {
+  tableName: 'admin_activities',
   timestamps: true,
   createdAt: 'created_at'
 });

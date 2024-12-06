@@ -41,6 +41,7 @@ const Course = sequelize.define('Course', {
     }
   }
 }, {
+  tableName: 'courses',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'

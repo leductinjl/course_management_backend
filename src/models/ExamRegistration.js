@@ -26,6 +26,7 @@ const ExamRegistration = sequelize.define('ExamRegistration', {
     defaultValue: 'registered'
   }
 }, {
+  tableName: 'exam_registrations',
   timestamps: true,
   createdAt: 'registration_date'
 });

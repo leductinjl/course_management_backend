@@ -24,6 +24,7 @@ const Grade = sequelize.define('Grade', {
     }
   }
 }, {
+  tableName: 'grades',
   timestamps: true,
   updatedAt: 'updated_at'
 });

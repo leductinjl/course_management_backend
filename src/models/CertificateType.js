@@ -21,6 +21,7 @@ const CertificateType = sequelize.define('CertificateType', {
     }
   }
 }, {
+  tableName: 'certificate_types',
   timestamps: true,
   createdAt: 'created_at'
 });

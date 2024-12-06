@@ -43,6 +43,7 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
   },
   notes: DataTypes.TEXT
 }, {
+  tableName: 'salary_payments',
   timestamps: true,
   createdAt: 'payment_date'
 });
