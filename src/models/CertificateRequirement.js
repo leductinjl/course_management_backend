@@ -10,14 +10,14 @@ const CertificateRequirement = sequelize.define('CertificateRequirement', {
   certificateTypeId: {
     type: DataTypes.UUID,
     references: {
-      model: 'CertificateTypes',
+      model: 'certificate_types',
       key: 'id'
     }
   },
   courseId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Courses',
+      model: 'courses',
       key: 'id'
     }
   },
@@ -25,13 +25,15 @@ const CertificateRequirement = sequelize.define('CertificateRequirement', {
   createdBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   }
 }, {
   tableName: 'certificate_requirements',
-  timestamps: true
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
 module.exports = CertificateRequirement; 

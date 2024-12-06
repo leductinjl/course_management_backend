@@ -10,7 +10,7 @@ const AdminActivity = sequelize.define('AdminActivity', {
   adminId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   },
@@ -24,7 +24,8 @@ const AdminActivity = sequelize.define('AdminActivity', {
 }, {
   tableName: 'admin_activities',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
 module.exports = AdminActivity; 

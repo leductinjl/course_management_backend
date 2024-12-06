@@ -10,14 +10,14 @@ const CourseRequest = sequelize.define('CourseRequest', {
   instructorId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Instructors',
+      model: 'instructors',
       key: 'id'
     }
   },
   courseId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Courses',
+      model: 'courses',
       key: 'id'
     }
   },
@@ -30,7 +30,7 @@ const CourseRequest = sequelize.define('CourseRequest', {
   reviewedBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   },
@@ -38,7 +38,8 @@ const CourseRequest = sequelize.define('CourseRequest', {
 }, {
   tableName: 'course_requests',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = CourseRequest; 

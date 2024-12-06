@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const sequelize = require('./config/database');
+const routes = require('./routes');
 
 const app = express();
 
@@ -9,6 +10,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Routes
+app.use(routes);
 
 // Test route
 app.get('/', (req, res) => {

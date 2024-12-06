@@ -10,7 +10,7 @@ const Grade = sequelize.define('Grade', {
   enrollmentId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Enrollments',
+      model: 'enrollments',
       key: 'id'
     }
   },
@@ -19,7 +19,14 @@ const Grade = sequelize.define('Grade', {
   lastUpdatedBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Instructors',
+      model: 'instructors',
+      key: 'id'
+    }
+  },
+  verifiedBy: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
       key: 'id'
     }
   }

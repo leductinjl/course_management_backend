@@ -10,7 +10,7 @@ const ExamSession = sequelize.define('ExamSession', {
   certificateTypeId: {
     type: DataTypes.UUID,
     references: {
-      model: 'CertificateTypes',
+      model: 'certificate_types',
       key: 'id'
     }
   },
@@ -24,14 +24,15 @@ const ExamSession = sequelize.define('ExamSession', {
   createdBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   }
 }, {
   tableName: 'exam_sessions',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = ExamSession; 

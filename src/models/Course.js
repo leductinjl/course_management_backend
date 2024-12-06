@@ -29,14 +29,14 @@ const Course = sequelize.define('Course', {
   createdBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   },
   updatedBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   }

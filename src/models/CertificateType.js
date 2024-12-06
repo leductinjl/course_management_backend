@@ -16,14 +16,15 @@ const CertificateType = sequelize.define('CertificateType', {
   createdBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   }
 }, {
   tableName: 'certificate_types',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
 module.exports = CertificateType; 

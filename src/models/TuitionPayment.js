@@ -10,14 +10,14 @@ const TuitionPayment = sequelize.define('TuitionPayment', {
   studentId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Students',
+      model: 'students',
       key: 'id'
     }
   },
   enrollmentId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Enrollments',
+      model: 'enrollments',
       key: 'id'
     }
   },
@@ -33,7 +33,7 @@ const TuitionPayment = sequelize.define('TuitionPayment', {
   confirmedBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   },
@@ -41,7 +41,8 @@ const TuitionPayment = sequelize.define('TuitionPayment', {
 }, {
   tableName: 'tuition_payments',
   timestamps: true,
-  createdAt: 'payment_date'
+  createdAt: 'payment_date',
+  updatedAt: 'updated_at'
 });
 
 module.exports = TuitionPayment; 

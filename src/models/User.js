@@ -12,7 +12,7 @@ const User = sequelize.define('User', {
     unique: true,
     allowNull: false
   },
-  passwordHash: {
+  password: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -32,7 +32,8 @@ const User = sequelize.define('User', {
 }, {
   tableName: 'users',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = User; 

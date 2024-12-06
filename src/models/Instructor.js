@@ -11,7 +11,7 @@ const Instructor = sequelize.define('Instructor', {
     type: DataTypes.UUID,
     unique: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -26,11 +26,26 @@ const Instructor = sequelize.define('Instructor', {
   status: {
     type: DataTypes.STRING,
     defaultValue: 'active'
+  },
+  createdBy: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
+  },
+  updatedBy: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'instructors',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = Instructor; 

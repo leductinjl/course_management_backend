@@ -10,14 +10,14 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
   instructorId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Instructors',
+      model: 'instructors',
       key: 'id'
     }
   },
   classId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Classes',
+      model: 'classes',
       key: 'id'
     }
   },
@@ -37,7 +37,7 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
   processedBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   },
@@ -45,7 +45,8 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
 }, {
   tableName: 'salary_payments',
   timestamps: true,
-  createdAt: 'payment_date'
+  createdAt: 'payment_date',
+  updatedAt: 'updated_at'
 });
 
 module.exports = SalaryPayment; 

@@ -10,25 +10,33 @@ const Enrollment = sequelize.define('Enrollment', {
   studentId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Students',
+      model: 'students',
       key: 'id'
     }
   },
   classId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Classes',
+      model: 'classes',
       key: 'id'
     }
   },
   status: {
     type: DataTypes.STRING,
     defaultValue: 'active'
+  },
+  processedBy: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'enrollments',
   timestamps: true,
-  createdAt: 'enrollment_date'
+  createdAt: 'enrollment_date',
+  updatedAt: 'updated_at'
 });
 
 module.exports = Enrollment; 

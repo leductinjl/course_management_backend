@@ -12,7 +12,7 @@ const Admin = sequelize.define('Admin', {
     unique: true,
     allowNull: false
   },
-  passwordHash: {
+  password: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -21,7 +21,7 @@ const Admin = sequelize.define('Admin', {
     allowNull: false
   },
   adminType: {
-    type: DataTypes.ENUM('course_admin', 'user_admin', 'finance_admin'),
+    type: DataTypes.ENUM('super_admin', 'course_admin', 'user_admin', 'finance_admin'),
     allowNull: false
   },
   phone: DataTypes.STRING,

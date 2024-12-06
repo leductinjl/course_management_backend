@@ -11,7 +11,7 @@ const Student = sequelize.define('Student', {
     type: DataTypes.UUID,
     unique: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },
@@ -25,11 +25,26 @@ const Student = sequelize.define('Student', {
   status: {
     type: DataTypes.STRING,
     defaultValue: 'active'
+  },
+  createdBy: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
+  },
+  updatedBy: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
   }
 }, {  
   tableName: 'students',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = Student; 

@@ -10,14 +10,14 @@ const Class = sequelize.define('Class', {
   courseId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Courses',
+      model: 'courses',
       key: 'id'
     }
   },
   instructorId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Instructors',
+      model: 'instructors',
       key: 'id'
     }
   },
@@ -41,14 +41,15 @@ const Class = sequelize.define('Class', {
   createdBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   }
 }, {
   tableName: 'classes',
   timestamps: true,
-  createdAt: 'created_at'
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = Class; 

@@ -10,14 +10,14 @@ const ExamRegistration = sequelize.define('ExamRegistration', {
   studentId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Students',
+      model: 'students',
       key: 'id'
     }
   },
   examSessionId: {
     type: DataTypes.UUID,
     references: {
-      model: 'ExamSessions',
+      model: 'exam_sessions',
       key: 'id'
     }
   },
@@ -28,7 +28,9 @@ const ExamRegistration = sequelize.define('ExamRegistration', {
 }, {
   tableName: 'exam_registrations',
   timestamps: true,
-  createdAt: 'registration_date'
+  createdAt: 'registration_date',
+  updatedAt: 'updated_at',
+  freezeTableName: true
 });
 
 module.exports = ExamRegistration; 

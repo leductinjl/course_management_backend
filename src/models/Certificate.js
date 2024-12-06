@@ -10,14 +10,14 @@ const Certificate = sequelize.define('Certificate', {
   studentId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Students',
+      model: 'students',
       key: 'id'
     }
   },
   certificateTypeId: {
     type: DataTypes.UUID,
     references: {
-      model: 'CertificateTypes',
+      model: 'certificate_types',
       key: 'id'
     }
   },
@@ -36,13 +36,15 @@ const Certificate = sequelize.define('Certificate', {
   issuedBy: {
     type: DataTypes.UUID,
     references: {
-      model: 'Admins',
+      model: 'admins',
       key: 'id'
     }
   }
 }, {
   tableName: 'certificates',
-  timestamps: true
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
 module.exports = Certificate; 
