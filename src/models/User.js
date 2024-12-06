@@ -28,7 +28,12 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  lastLogin: DataTypes.DATE
+  lastLogin: DataTypes.DATE,
+  status: {
+    type: DataTypes.ENUM('active', 'inactive'),
+    defaultValue: 'active',
+    allowNull: false
+  }
 }, {
   tableName: 'users',
   timestamps: true,

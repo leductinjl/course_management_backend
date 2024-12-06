@@ -23,10 +23,6 @@ const Instructor = sequelize.define('Instructor', {
   address: DataTypes.TEXT,
   specialization: DataTypes.TEXT,
   bio: DataTypes.TEXT,
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'active'
-  },
   createdBy: {
     type: DataTypes.UUID,
     references: {

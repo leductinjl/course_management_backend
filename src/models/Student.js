@@ -22,10 +22,6 @@ const Student = sequelize.define('Student', {
   phone: DataTypes.STRING,
   address: DataTypes.TEXT,
   dateOfBirth: DataTypes.DATE,
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'active'
-  },
   createdBy: {
     type: DataTypes.UUID,
     references: {

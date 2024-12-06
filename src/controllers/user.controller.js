@@ -46,7 +46,7 @@ class UserManagementController {
     const t = await sequelize.transaction();
 
     try {
-      const { email, password, fullName, role } = req.body;
+      const { email, password, fullName, role, status = 'active' } = req.body;
 
       // Validate required fields
       if (!email || !password || !fullName || !role) {
@@ -76,27 +76,25 @@ class UserManagementController {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create base user
+      // Create base user with status
       const user = await User.create({
         email,
         password: hashedPassword,
         role,
-        status: 'active'
+        status
       }, { transaction: t });
 
-      // Create role-specific profile with only required fields
+      // Create profile without status
       if (role === 'student') {
         await Student.create({
           userId: user.id,
           fullName,
-          status: 'active',
           createdBy: req.admin.id
         }, { transaction: t });
       } else if (role === 'instructor') {
         await Instructor.create({
           userId: user.id,
           fullName,
-          status: 'active',
           createdBy: req.admin.id
         }, { transaction: t });
       }
@@ -150,35 +148,20 @@ class UserManagementController {
       const { id } = req.params;
       const { email, fullName, status, ...userData } = req.body;
 
-      // Check if email exists for other users
-      if (email) {
-        const existingUser = await User.findOne({ 
-          where: { 
-            email,
-            id: { [Op.ne]: id }
-          }
-        });
-        
-        if (existingUser) {
-          return res.status(400).json({
-            message: 'Email đã tồn tại trong hệ thống',
-            code: 'EMAIL_EXISTS'
-          });
-        }
-      }
-
       const result = await sequelize.transaction(async (t) => {
         const user = await User.findByPk(id);
         if (!user) {
           throw new Error('NOT_FOUND');
         }
 
+        // Update user with status
         await user.update({
           email,
           status,
           ...userData
         }, { transaction: t });
 
+        // Update profile without status
         if (user.role === 'student') {
           await Student.update(
             { 
