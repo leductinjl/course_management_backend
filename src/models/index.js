@@ -85,6 +85,16 @@ Enrollment.hasOne(Grade, { foreignKey: 'enrollmentId' });
 Enrollment.hasMany(TuitionPayment, { foreignKey: 'enrollmentId' });
 Grade.belongsTo(Enrollment, { foreignKey: 'enrollmentId' });
 
+// Course Relations with Admin
+Course.belongsTo(Admin, { 
+  foreignKey: 'createdBy', 
+  as: 'creator' 
+});
+Course.belongsTo(Admin, { 
+  foreignKey: 'updatedBy', 
+  as: 'updater' 
+});
+
 module.exports = {
   sequelize,
   Admin,

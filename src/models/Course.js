@@ -19,12 +19,32 @@ const Course = sequelize.define('Course', {
   description: DataTypes.TEXT,
   credits: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      min: 1
+    }
   },
-  type: DataTypes.STRING,
+  type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isIn: [['basic', 'advanced', 'specialized']]
+    }
+  },
   status: {
     type: DataTypes.STRING,
-    defaultValue: 'active'
+    allowNull: false,
+    defaultValue: 'draft',
+    validate: {
+      isIn: [['draft', 'active', 'suspended', 'discontinued']]
+    }
+  },
+  fee: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      min: 0
+    }
   },
   createdBy: {
     type: DataTypes.UUID,
