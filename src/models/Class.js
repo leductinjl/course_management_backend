@@ -36,7 +36,11 @@ const Class = sequelize.define('Class', {
   },
   status: {
     type: DataTypes.STRING,
-    defaultValue: 'upcoming'
+    allowNull: false,
+    defaultValue: 'upcoming',
+    validate: {
+      isIn: [['upcoming', 'ongoing', 'completed', 'cancelled']]
+    }
   },
   createdBy: {
     type: DataTypes.UUID,

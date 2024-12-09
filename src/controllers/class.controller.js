@@ -1,4 +1,5 @@
-const { Class, Course, Instructor, Admin, User, sequelize } = require('../models');
+const { literal } = require('sequelize');
+const { Class, Course, Instructor, Admin, User, sequelize, ActivityLog } = require('../models');
 const { validateClass } = require('../validators/class.validator');
 const { ApiError } = require('../utils/apiError');
 const { classActivityLogger } = require('../utils/activityLogger');
@@ -76,20 +77,25 @@ class ClassController {
           }
     
           // Tạo mã lớp
-          const classCode = value.classCode 
+          let classCode = value.classCode 
             ? `${course.code}-${value.classCode}`
             : `${course.code}-01`;
     
-          // Kiểm tra mã lớp tồn tại
-          const existingClass = await Class.findOne({ 
+          // Kiểm tra mã lớp tồn tại và tự động tạo mã lớp mới nếu cần
+          let existingClass = await Class.findOne({ 
             where: { classCode } 
           });
-          
-          if (existingClass) {
-            return next(new ApiError(400, 'Mã lớp đã tồn tại'));
+    
+          let counter = 1;
+          while (existingClass) {
+            classCode = `${course.code}-${String(counter).padStart(2, '0')}`;
+            existingClass = await Class.findOne({ 
+              where: { classCode } 
+            });
+            counter++;
           }
     
-          // Tạo lớp mới với status mặc định
+          // Tạo lớp mới
           const newClass = await Class.create({
             ...value,
             classCode,
@@ -97,6 +103,7 @@ class ClassController {
             updatedBy: req.admin.id
           });
     
+          // Log hoạt động sau khi lớp đã được tạo thành công
           await classActivityLogger.logCreation(req.admin.id, newClass);
     
           res.status(201).json({
@@ -112,26 +119,87 @@ class ClassController {
       async updateClass(req, res, next) {
         try {
           const { id } = req.params;
-          const { error, value } = validateClass(req.body, true);
           
-          if (error) {
-            return next(new ApiError(400, 'Validation error', error.details));
+          // Kiểm tra class tồn tại
+          const existingClass = await Class.findByPk(id);
+          if (!existingClass) {
+            return next(new ApiError(404, 'Không tìm thấy lớp học'));
           }
-    
-          const classToUpdate = await Class.findByPk(id);
-          if (!classToUpdate) {
-            return next(new ApiError(404, 'Class not found'));
+
+          // Kiểm tra và lọc dữ liệu đầu vào
+          const allowedFields = ['startDate', 'endDate', 'schedule', 'room', 'capacity', 'status'];
+          const updateData = allowedFields.reduce((acc, field) => {
+            if (req.body && req.body[field] !== undefined) {
+              acc[field] = req.body[field];
+            }
+            return acc;
+          }, {});
+
+          // Thêm updatedBy
+          updateData.updatedBy = req.admin.id;
+
+          // Validate dữ liệu
+          if (Object.keys(updateData).length === 0) {
+            return next(new ApiError(400, 'Không có dữ liệu cập nhật'));
           }
-    
-          await classToUpdate.update(value);
-          await classActivityLogger.logUpdate(req.admin.id, classToUpdate, value);
-    
+
+          // Validate status
+          const validStatuses = ['upcoming', 'ongoing', 'completed', 'cancelled'];
+          if (updateData.status && !validStatuses.includes(updateData.status)) {
+            return next(new ApiError(400, 'Trạng thái không hợp lệ'));
+          }
+
+          // Validate dates if provided
+          if (updateData.startDate && updateData.endDate) {
+            const startDate = new Date(updateData.startDate);
+            const endDate = new Date(updateData.endDate);
+            if (endDate <= startDate) {
+              return next(new ApiError(400, 'Ngày kết thúc phải sau ngày bắt đầu'));
+            }
+          }
+
+          // Validate capacity if provided
+          if (updateData.capacity) {
+            const capacity = Number(updateData.capacity);
+            if (isNaN(capacity) || capacity < 1) {
+              return next(new ApiError(400, 'Sĩ số phải là số dương'));
+            }
+            updateData.capacity = capacity;
+          }
+
+          // Cập nhật class
+          await existingClass.update(updateData);
+
+          // Log hoạt động sau khi cập nhật thành công
+          try {
+            await classActivityLogger.logUpdate(req.admin.id, existingClass);
+          } catch (logError) {
+            console.error('Error logging activity:', logError);
+            // Không throw error nếu log thất bại
+          }
+
+          // Lấy dữ liệu class đã cập nhật
+          const updatedClass = await Class.findByPk(id, {
+            include: [
+              {
+                model: Course,
+                attributes: ['id', 'name', 'code']
+              },
+              {
+                model: Instructor,
+                attributes: ['id', 'fullName']
+              }
+            ]
+          });
+
           res.json({
             success: true,
-            data: classToUpdate
+            message: 'Cập nhật lớp học thành công',
+            data: updatedClass
           });
         } catch (error) {
-          next(new ApiError(500, 'Error updating class'));
+          console.error('Error in updateClass:', error);
+          next(new ApiError(500, 'Lỗi cập nhật lớp học: ' + error.message));
         }
       }
     

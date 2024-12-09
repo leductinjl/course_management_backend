@@ -35,37 +35,51 @@ class CourseActivityLogger {
 
 class ClassActivityLogger {
   async logCreation(adminId, classData) {
-    return await AdminActivity.create({
-      adminId,
-      activityType: 'CLASS_CREATE',
-      description: `Created new class: ${classData.classCode}`,
-      affectedTable: 'classes',
-      affectedId: classData.id
-    });
+    if (!classData) return;
+    
+    try {
+      await AdminActivity.create({
+        adminId,
+        activityType: 'create',
+        description: `Created class with code: ${classData.classCode}`,
+        affectedTable: 'classes',
+        affectedId: classData.id
+      });
+    } catch (error) {
+      console.error('Error logging class creation:', error);
+    }
   }
 
-  async logUpdate(adminId, classData, changes) {
-    const changeDescription = Object.keys(changes)
-      .map(key => `${key}: ${changes[key]}`)
-      .join(', ');
-
-    return await AdminActivity.create({
-      adminId,
-      activityType: 'CLASS_UPDATE',
-      description: `Updated class ${classData.classCode}: ${changeDescription}`,
-      affectedTable: 'classes',
-      affectedId: classData.id
-    });
+  async logUpdate(adminId, classData) {
+    if (!classData) return;
+    
+    try {
+      await AdminActivity.create({
+        adminId,
+        activityType: 'update',
+        description: `Updated class with code: ${classData.classCode}`,
+        affectedTable: 'classes',
+        affectedId: classData.id
+      });
+    } catch (error) {
+      console.error('Error logging class update:', error);
+    }
   }
 
   async logDeletion(adminId, classData) {
-    return await AdminActivity.create({
-      adminId,
-      activityType: 'CLASS_DELETE',
-      description: `Deleted class: ${classData.classCode}`,
-      affectedTable: 'classes',
-      affectedId: classData.id
-    });
+    if (!classData) return;
+    
+    try {
+      await AdminActivity.create({
+        adminId,
+        activityType: 'delete',
+        description: `Deleted class with code: ${classData.classCode}`,
+        affectedTable: 'classes',
+        affectedId: classData.id
+      });
+    } catch (error) {
+      console.error('Error logging class deletion:', error);
+    }
   }
 }
 
