@@ -44,6 +44,14 @@ const Class = sequelize.define('Class', {
       model: 'admins',
       key: 'id'
     }
+  },
+  updatedBy: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'classes',

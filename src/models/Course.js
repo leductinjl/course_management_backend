@@ -34,7 +34,7 @@ const Course = sequelize.define('Course', {
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'draft',
+    defaultValue: 'active',
     validate: {
       isIn: [['draft', 'active', 'suspended', 'discontinued']]
     }

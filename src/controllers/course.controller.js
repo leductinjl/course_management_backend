@@ -155,6 +155,19 @@ class CourseController {
       next(new ApiError(500, 'Error deleting course'));
     }
   }
+
+  async getAvailableCourses() {
+    try {
+     const courses = await Course.findAll({
+        where: { status: 'ACTIVE' },
+        attributes: ['id', 'name', 'code']
+      });
+      return courses;
+    } catch (error) {
+      console.error('Error in getAvailableCourses:', error);
+      throw new ApiError(500, 'Lỗi khi lấy danh sách môn học');
+    }
+  }
 }
 
 module.exports = new CourseController();

@@ -33,4 +33,41 @@ class CourseActivityLogger {
   }
 }
 
-exports.courseActivityLogger = new CourseActivityLogger(); 
+class ClassActivityLogger {
+  async logCreation(adminId, classData) {
+    return await AdminActivity.create({
+      adminId,
+      activityType: 'CLASS_CREATE',
+      description: `Created new class: ${classData.classCode}`,
+      affectedTable: 'classes',
+      affectedId: classData.id
+    });
+  }
+
+  async logUpdate(adminId, classData, changes) {
+    const changeDescription = Object.keys(changes)
+      .map(key => `${key}: ${changes[key]}`)
+      .join(', ');
+
+    return await AdminActivity.create({
+      adminId,
+      activityType: 'CLASS_UPDATE',
+      description: `Updated class ${classData.classCode}: ${changeDescription}`,
+      affectedTable: 'classes',
+      affectedId: classData.id
+    });
+  }
+
+  async logDeletion(adminId, classData) {
+    return await AdminActivity.create({
+      adminId,
+      activityType: 'CLASS_DELETE',
+      description: `Deleted class: ${classData.classCode}`,
+      affectedTable: 'classes',
+      affectedId: classData.id
+    });
+  }
+}
+
+exports.courseActivityLogger = new CourseActivityLogger();
+exports.classActivityLogger = new ClassActivityLogger(); 

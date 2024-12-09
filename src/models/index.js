@@ -95,6 +95,30 @@ Course.belongsTo(Admin, {
   as: 'updater' 
 });
 
+// Class Relations
+Class.belongsTo(Course, { foreignKey: 'courseId' });
+Class.belongsTo(Instructor, { foreignKey: 'instructorId' });
+Class.belongsTo(Admin, { 
+  foreignKey: 'createdBy', 
+  as: 'creator' 
+});
+
+// Course Relations
+Course.hasMany(Class, { foreignKey: 'courseId' });
+
+// Instructor Relations
+Instructor.hasMany(Class, { foreignKey: 'instructorId' });
+
+// Admin Relations with Class
+Admin.hasMany(Class, { 
+  foreignKey: 'createdBy', 
+  as: 'classesCreated' 
+});
+
+// Define associations
+Instructor.belongsTo(User);
+User.hasOne(Instructor);
+
 module.exports = {
   sequelize,
   Admin,
