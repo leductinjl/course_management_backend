@@ -16,6 +16,9 @@ const SalaryPayment = require('./SalaryPayment');
 const Student = require('./Student');
 const TuitionPayment = require('./TuitionPayment');
 const User = require('./User');
+const InstructorAchievement = require('./InstructorAchievement');
+const InstructorCertificate = require('./InstructorCertificate');
+const InstructorWorkHistory = require('./InstructorWorkHistory');
 
 // User Relations
 User.hasOne(Student, { 
@@ -119,6 +122,18 @@ Admin.hasMany(Class, {
 Instructor.belongsTo(User);
 User.hasOne(Instructor);
 
+// Instructor Achievement associations
+Instructor.hasMany(InstructorAchievement, { foreignKey: 'instructorId' });
+InstructorAchievement.belongsTo(Instructor, { foreignKey: 'instructorId' });
+
+// Instructor Certificate associations
+Instructor.hasMany(InstructorCertificate, { foreignKey: 'instructorId' });
+InstructorCertificate.belongsTo(Instructor, { foreignKey: 'instructorId' });
+
+// Instructor Work History associations
+Instructor.hasMany(InstructorWorkHistory, { foreignKey: 'instructorId' });
+InstructorWorkHistory.belongsTo(Instructor, { foreignKey: 'instructorId' });
+
 module.exports = {
   sequelize,
   Admin,
@@ -137,5 +152,8 @@ module.exports = {
   SalaryPayment,
   Student,
   TuitionPayment,
-  User
+  User,
+  InstructorAchievement,
+  InstructorCertificate,
+  InstructorWorkHistory
 }; 
