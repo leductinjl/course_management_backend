@@ -21,61 +21,36 @@ class InstructorController {
     }
   }
 
-  async getCurrentInstructor(userId) {
+  async getCurrentInstructor(req, res, next) {
     try {
+      const userId = req.user.id;
       console.log('Getting instructor with userId:', userId);
-      
-      // Tìm user trước để đảm bảo user tồn tại và active
-      const user = await User.findOne({
-        where: { 
-          id: userId,
-          role: 'instructor',
-          status: 'active'
-        }
-      });
 
-      if (!user) {
-        console.log('User not found or inactive:', userId);
-        throw new ApiError(404, 'Không tìm thấy thông tin người dùng hoặc tài khoản không hoạt động');
+      if (!userId) {
+        throw new ApiError(400, 'User ID is required');
       }
 
-      // Sau đó tìm instructor profile
-      const instructor = await Instructor.findOne({
-        where: { 
-          userId: user.id  // Dùng user.id từ user đã tìm được
-        }
+      const instructor = await User.findOne({
+        where: {
+          id: userId,
+          role: 'instructor'
+        },
+        include: [
+          // your includes here
+        ]
       });
 
       if (!instructor) {
-        console.log('Instructor profile not found for user:', userId);
-        throw new ApiError(404, 'Không tìm thấy thông tin giảng viên');
+        throw new ApiError(404, 'Instructor not found');
       }
 
-      // Log để debug
-      console.log('Found instructor:', {
-        id: instructor.id,
-        fullName: instructor.fullName,
-        email: user.email,
-        status: user.status
+      res.json({
+        success: true,
+        data: instructor
       });
-
-      return {
-        id: instructor.id,
-        fullName: instructor.fullName,
-        email: user.email,
-        phone: instructor.phone || null,
-        address: instructor.address || null,
-        specialization: instructor.specialization || null,
-        bio: instructor.bio || null,
-        created_at: instructor.created_at,
-        updated_at: instructor.updated_at
-      };
     } catch (error) {
       console.error('Error in getCurrentInstructor:', error);
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError(500, 'Lỗi khi tải thông tin giảng viên');
+      next(new ApiError(500, 'Lỗi khi tải thông tin giảng viên'));
     }
   }
 

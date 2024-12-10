@@ -1,7 +1,8 @@
+// backendcourse/src/middlewares/adminAuth.middleware.js
 const jwt = require('jsonwebtoken');
 const { ApiError } = require('../utils/ApiError');
 
-const authMiddleware = (req, res, next) => {
+const adminAuthMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization || req.headers['Authorization'];
     
@@ -15,18 +16,16 @@ const authMiddleware = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded token:', decoded);
-
-    if (!decoded.role) {
-      throw new ApiError(401, 'Invalid token - missing role information');
+    
+    // Specifically check for admin type
+    if (!decoded.adminType) {
+      throw new ApiError(403, 'Access denied. Admin privileges required.');
     }
 
-    // Add complete user info to request
-    req.user = {
+    req.admin = {
       id: decoded.id,
       email: decoded.email,
-      role: decoded.role,
-      userId: decoded.userId
+      adminType: decoded.adminType
     };
 
     next();
@@ -39,4 +38,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware; 
+module.exports = adminAuthMiddleware;
