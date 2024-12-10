@@ -5,109 +5,84 @@ const authConfig = require('../config/auth.config');
 
 const authMiddleware = async (req, res, next) => {
   try {
+    console.log('Headers received:', req.headers);
+    
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader) {
+      console.log('No authorization header found');
       return next(new ApiError(401, 'Không tìm thấy token xác thực'));
     }
 
+    if (!authHeader.startsWith('Bearer ')) {
+      console.log('Invalid token format');
+      return next(new ApiError(401, 'Token không đúng định dạng'));
+    }
+
     const token = authHeader.split(' ')[1];
-    console.log('Token received:', token); // Debug log
+    console.log('Token extracted:', token);
+
+    if (!token) {
+      console.log('No token found after Bearer');
+      return next(new ApiError(401, 'Token không hợp lệ'));
+    }
 
     try {
       const decoded = jwt.verify(token, authConfig.jwt.secret);
-      console.log('Decoded token:', decoded); // Debug log
+      console.log('Decoded token:', decoded);
       
       if (!decoded.role) {
         return next(new ApiError(401, 'Token không chứa thông tin role'));
       }
 
-      // Kiểm tra role và xử lý tương ứng
-      switch (decoded.role) {
-        case 'admin':
-          const admin = await Admin.findOne({ 
-            where: { 
-              id: decoded.id,
-              status: 'active'
-            } 
-          });
-          if (!admin) {
-            return next(new ApiError(401, 'Admin không tồn tại hoặc đã bị vô hiệu hóa'));
-          }
-          req.user = { ...admin.toJSON(), role: 'admin' };
-          break;
+      // Tìm user trước
+      const user = await User.findOne({
+        where: {
+          id: decoded.id,
+          status: 'active'
+        }
+      });
 
-        case 'instructor':
-          const instructor = await Instructor.findOne({
-            where: { 
-              userId: decoded.id,
-              status: 'active'
-            },
-            include: [{
-              model: User,
-              attributes: ['email']
-            }]
-          });
-          if (!instructor) {
-            return next(new ApiError(401, 'Giảng viên không tồn tại hoặc đã bị vô hiệu hóa'));
-          }
-          req.user = { ...instructor.toJSON(), role: 'instructor' };
-          break;
-
-        case 'student':
-          const student = await User.findOne({
-            where: { 
-              id: decoded.id,
-              status: 'active',
-              role: 'student'
-            }
-          });
-          if (!student) {
-            return next(new ApiError(401, 'Sinh viên không tồn tại hoặc đã bị vô hiệu hóa'));
-          }
-          req.user = { ...student.toJSON(), role: 'student' };
-          break;
-
-        default:
-          return next(new ApiError(401, `Role không hợp lệ: ${decoded.role}`));
+      if (!user) {
+        return next(new ApiError(401, 'Người dùng không tồn tại hoặc đã bị vô hiệu hóa'));
       }
 
+      // Sau đó tìm profile tương ứng
+      let profile;
+      if (decoded.role === 'instructor') {
+        profile = await Instructor.findOne({
+          where: { userId: decoded.id },
+          include: [{
+            model: User,
+            attributes: ['id', 'email']
+          }]
+        });
+      } else if (decoded.role === 'student') {
+        profile = await Student.findOne({
+          where: { userId: decoded.id },
+          include: [{
+            model: User,
+            attributes: ['id', 'email']
+          }]
+        });
+      }
+
+      if (!profile) {
+        return next(new ApiError(401, 'Profile không tồn tại hoặc đã bị vô hiệu hóa'));
+      }
+
+      req.user = { 
+        ...profile.toJSON(), 
+        userId: decoded.id, 
+        role: decoded.role 
+      };
       console.log('User set in request:', req.user); // Debug log
       next();
     } catch (error) {
-      console.error('JWT Verification Error:', error); // Debug log
-
-      if (error.name === 'TokenExpiredError') {
-        const refreshToken = req.headers['x-refresh-token'];
-        if (!refreshToken) {
-          return next(new ApiError(401, 'Token hết hạn, vui lòng đăng nhập lại'));
-        }
-
-        try {
-          const decoded = jwt.verify(refreshToken, authConfig.jwt.refreshSecret);
-          console.log('Refresh token decoded:', decoded); // Debug log
-          
-          const newToken = jwt.sign(
-            { 
-              id: decoded.id, 
-              role: decoded.role 
-            },
-            authConfig.jwt.secret,
-            { expiresIn: authConfig.jwt.expiresIn }
-          );
-
-          res.setHeader('x-new-token', newToken);
-          req.user = { id: decoded.id, role: decoded.role };
-          next();
-        } catch (refreshError) {
-          console.error('Refresh Token Error:', refreshError); // Debug log
-          return next(new ApiError(401, 'Refresh token không hợp lệ, vui lòng đăng nhập lại'));
-        }
-      } else {
-        return next(new ApiError(401, `Token không hợp lệ: ${error.message}`));
-      }
+      console.error('JWT Verification Error:', error);
+      return next(new ApiError(401, `Token không hợp lệ: ${error.message}`));
     }
   } catch (error) {
-    console.error('General Auth Error:', error); // Debug log
+    console.error('General Auth Error:', error);
     next(new ApiError(500, 'Lỗi xác thực'));
   }
 };

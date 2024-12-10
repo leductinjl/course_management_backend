@@ -17,9 +17,10 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET /api/instructors/me - Get current instructor profile
-router.get('/me', authMiddleware, async (req, res, next) => {
+router.get('/profile', authMiddleware, async (req, res, next) => {
   try {
-    const instructor = await instructorController.getCurrentInstructor(req.user.id);
+    console.log('User in request:', req.user);
+    const instructor = await instructorController.getCurrentInstructor(req.user.userId);
     res.json({
       success: true,
       data: instructor
@@ -81,6 +82,19 @@ router.post('/:instructorId/work-history', authMiddleware, async (req, res, next
   try {
     const workHistory = await instructorController.createWorkHistory(req.params.instructorId, req.body);
     res.status(201).json({ success: true, data: workHistory });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Thêm route PUT cho việc cập nhật instructor
+router.put('/:id', authMiddleware, async (req, res, next) => {
+  try {
+    const instructor = await instructorController.updateInstructor(req.params.id, req.body);
+    res.json({
+      success: true,
+      data: instructor
+    });
   } catch (error) {
     next(error);
   }
