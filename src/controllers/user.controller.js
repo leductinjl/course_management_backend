@@ -1,5 +1,5 @@
 const { User, Student, Instructor, sequelize } = require('../models');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const adminActivityController = require('./activity.controller');
 const { Op } = require('sequelize');
 
@@ -48,6 +48,16 @@ class UserManagementController {
     try {
       const { email, password, fullName, role, status = 'active' } = req.body;
 
+      // Check if admin exists in request
+      if (!req.admin || !req.admin.id) {
+        await t.rollback();
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized - Admin information missing',
+          code: 'UNAUTHORIZED'
+        });
+      }
+
       // Validate required fields
       if (!email || !password || !fullName || !role) {
         await t.rollback();
@@ -76,26 +86,27 @@ class UserManagementController {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create base user with status
+      // Create base user
       const user = await User.create({
         email,
         password: hashedPassword,
         role,
-        status
+        status,
       }, { transaction: t });
 
-      // Create profile without status
+      // Create profile based on role
+      let profile;
       if (role === 'student') {
-        await Student.create({
+        profile = await Student.create({
           userId: user.id,
           fullName,
-          createdBy: req.admin.id
+          createdBy: req.admin.id,
         }, { transaction: t });
       } else if (role === 'instructor') {
-        await Instructor.create({
+        profile = await Instructor.create({
           userId: user.id,
           fullName,
-          createdBy: req.admin.id
+          createdBy: req.admin.id,
         }, { transaction: t });
       }
 

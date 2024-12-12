@@ -9,6 +9,7 @@ router.get('/', courseController.getCourses);
 router.post('/', courseController.createCourse);
 router.put('/:id', courseController.updateCourse);
 router.delete('/:id', courseController.deleteCourse);
+router.post('/:courseId/instructors', courseController.assignInstructors);
 
 router.get('/available', async (req, res, next) => {
   try {

@@ -21,36 +21,78 @@ class InstructorController {
     }
   }
 
-  async getCurrentInstructor(req, res, next) {
+  async getCurrentInstructor(req, res) {
     try {
-      const userId = req.user.id;
-      console.log('Getting instructor with userId:', userId);
-
-      if (!userId) {
-        throw new ApiError(400, 'User ID is required');
+      if (!req || !req.user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized'
+        });
       }
 
-      const instructor = await User.findOne({
-        where: {
-          id: userId,
-          role: 'instructor'
-        },
-        include: [
-          // your includes here
+      console.log('Looking for instructor with userId:', req.user.id);
+
+      // First get the user to ensure we have the email
+      const user = await User.findByPk(req.user.id, {
+        attributes: ['id', 'email']
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const instructor = await Instructor.findOne({
+        where: { userId: req.user.id },
+        attributes: [
+          'id', 
+          'userId', 
+          'fullName', 
+          'phone', 
+          'address', 
+          'specialization', 
+          'bio',
+          'created_at',
+          'updated_at'
         ]
       });
 
       if (!instructor) {
-        throw new ApiError(404, 'Instructor not found');
+        return res.status(404).json({
+          success: false,
+          message: 'Instructor profile not found'
+        });
       }
 
-      res.json({
+      // Combine instructor data with user email
+      const transformedData = {
+        id: instructor.id,
+        fullName: instructor.fullName,
+        email: user.email, // Get email directly from user
+        phone: instructor.phone || null,
+        address: instructor.address || null,
+        specialization: instructor.specialization || null,
+        bio: instructor.bio || null,
+        created_at: instructor.created_at,
+        updated_at: instructor.updated_at
+      };
+
+      console.log('Transformed data:', JSON.stringify(transformedData, null, 2));
+
+      return res.status(200).json({
         success: true,
-        data: instructor
+        data: transformedData
       });
+
     } catch (error) {
       console.error('Error in getCurrentInstructor:', error);
-      next(new ApiError(500, 'Lỗi khi tải thông tin giảng viên'));
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 

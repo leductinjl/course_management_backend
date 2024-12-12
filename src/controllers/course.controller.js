@@ -1,4 +1,4 @@
-const { Course, Admin } = require('../models');
+const { Course, Admin, Instructor } = require('../models');
 const { validateCourse } = require('../validators/course.validator');
 const { ApiError } = require('../utils/apiError');
 const { courseActivityLogger } = require('../utils/activityLogger');
@@ -7,13 +7,29 @@ class CourseController {
   async listCourses(req, res, next) {
     try {
       const courses = await Course.findAll({
-        include: [{
-          model: Admin,
-          as: 'creator',
-          attributes: ['id', 'fullName']
-        }],
+        include: [
+          {
+            model: Admin,
+            as: 'creator',
+            attributes: ['id', 'fullName']
+          },
+          {
+            model: Admin,
+            as: 'updater',
+            attributes: ['id', 'fullName']
+          },
+          {
+            model: Instructor,
+            as: 'instructors',
+            attributes: ['id', 'fullName', 'specialization'],
+            through: { attributes: [] }
+          }
+        ],
         order: [['created_at', 'DESC']]
       });
+      
+      // Debug log to check the data
+      console.log('Courses with instructors:', JSON.stringify(courses, null, 2));
       
       res.json({
         success: true,
@@ -28,16 +44,32 @@ class CourseController {
   async getCourse(req, res, next) {
     try {
       const course = await Course.findByPk(req.params.id, {
-        include: [{
-          model: Admin,
-          as: 'creator',
-          attributes: ['id', 'fullName']
-        }]
+        include: [
+          {
+            model: Admin,
+            as: 'creator',
+            attributes: ['id', 'fullName']
+          },
+          {
+            model: Admin,
+            as: 'updater',
+            attributes: ['id', 'fullName']
+          },
+          {
+            model: Instructor,
+            as: 'instructors',
+            attributes: ['id', 'fullName', 'specialization'],
+            through: { attributes: [] }
+          }
+        ]
       });
 
       if (!course) {
         return next(new ApiError(404, 'Course not found'));
       }
+
+      // Debug log
+      console.log('Course detail:', JSON.stringify(course, null, 2));
 
       res.json({
         success: true,
@@ -166,6 +198,39 @@ class CourseController {
     } catch (error) {
       console.error('Error in getAvailableCourses:', error);
       throw new ApiError(500, 'Lỗi khi lấy danh sách môn học');
+    }
+  }
+
+  async assignInstructors(req, res, next) {
+    try {
+      const { courseId } = req.params;
+      const { instructorIds } = req.body;
+
+      const course = await Course.findByPk(courseId);
+      if (!course) {
+        throw new ApiError(404, 'Không tìm thấy khóa học');
+      }
+
+      // Set the instructors for the course
+      await course.setInstructors(instructorIds);
+
+      // Fetch updated course with instructors
+      const updatedCourse = await Course.findByPk(courseId, {
+        include: [{
+          model: Instructor,
+          as: 'instructors',
+          attributes: ['id', 'fullName', 'specialization'],
+          through: { attributes: [] }
+        }]
+      });
+
+      res.json({
+        success: true,
+        message: 'Cập nhật giảng viên thành công',
+        data: updatedCourse
+      });
+    } catch (error) {
+      next(error);
     }
   }
 }

@@ -1,41 +1,38 @@
 const jwt = require('jsonwebtoken');
-const { ApiError } = require('../utils/ApiError');
+const { User } = require('../models');
+const { ApiError } = require('../utils/apiError');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization || req.headers['Authorization'];
+    const token = req.headers.authorization?.split(' ')[1];
     
-    if (!authHeader) {
-      throw new ApiError(401, 'No authorization header found');
-    }
-
-    const token = authHeader.split(' ')[1];
     if (!token) {
       throw new ApiError(401, 'No token provided');
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded token:', decoded);
+    const user = await User.findByPk(decoded.id, {
+      attributes: ['id', 'email', 'role', 'status']
+    });
 
-    if (!decoded.role) {
-      throw new ApiError(401, 'Invalid token - missing role information');
+    if (!user) {
+      throw new ApiError(401, 'User not found');
     }
 
-    // Add complete user info to request
+    if (user.status !== 'active') {
+      throw new ApiError(403, 'Account is inactive');
+    }
+
     req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      role: decoded.role,
-      userId: decoded.userId
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status
     };
 
     next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      next(new ApiError(401, 'Invalid token'));
-    } else {
-      next(error);
-    }
+    next(new ApiError(401, 'Invalid or expired token'));
   }
 };
 

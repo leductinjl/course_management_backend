@@ -7,114 +7,70 @@ class AdminController {
     try {
       const { email, password } = req.body;
 
-      // Validate input
-      if (!email || !password) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email và mật khẩu không được để trống',
-          code: 'MISSING_FIELDS',
-          errors: {
-            fields: {
-              email: !email ? 'Email là bắt buộc' : null,
-              password: !password ? 'Mật khẩu là bắt buộc' : null
-            }
-          }
-        });
-      }
+      const admin = await Admin.findOne({ 
+        where: { email },
+        attributes: ['id', 'email', 'password', 'adminType', 'fullName', 'status', 'isLocked']
+      });
 
-      // Find admin
-      const admin = await Admin.findOne({ where: { email } });
       if (!admin) {
         return res.status(401).json({
           success: false,
-          message: 'Email hoặc mật khẩu không chính xác',
-          code: 'INVALID_CREDENTIALS'
-        });
-      }
-
-      // Check account status
-      if (admin.status !== 'active') {
-        return res.status(403).json({
-          success: false,
-          message: 'Tài khoản đã bị vô hiệu hóa',
-          code: 'ACCOUNT_DISABLED',
-          details: {
-            status: admin.status,
-            reason: 'Account is not active'
-          }
-        });
-      }
-
-      // Check if account is locked
-      if (admin.isLocked) {
-        return res.status(403).json({
-          success: false,
-          message: 'Tài khoản đã bị khóa',
-          code: 'ACCOUNT_LOCKED',
-          details: {
-            reason: 'Account is locked'
-          }
+          message: 'Email hoặc mật khẩu không chính xác'
         });
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, admin.password);
       if (!isValidPassword) {
-        // Increment login attempts
-        admin.loginAttempts += 1;
-        
-        // Lock account after 5 failed attempts
-        if (admin.loginAttempts >= 5) {
-          admin.isLocked = true;
-        }
-        
-        await admin.save();
-
         return res.status(401).json({
           success: false,
-          message: 'Email hoặc mật khẩu không chính xác',
-          code: 'INVALID_CREDENTIALS'
+          message: 'Email hoặc mật khẩu không chính xác'
         });
       }
 
-      // Reset login attempts on successful login
-      admin.loginAttempts = 0;
-      admin.lastLogin = new Date();
-      await admin.save();
+      if (admin.status !== 'active') {
+        return res.status(403).json({
+          success: false,
+          message: 'Tài khoản đã bị vô hiệu hóa'
+        });
+      }
 
-      // Create activity log
-      await AdminActivity.create({
-        adminId: admin.id,
-        activityType: 'LOGIN',
-        description: 'Admin logged in successfully'
-      });
-
-      // Generate JWT token
       const token = jwt.sign(
-        { 
+        {
           id: admin.id,
           email: admin.email,
-          adminType: admin.adminType 
+          role: 'admin',
+          adminType: admin.adminType,
+          isAdmin: true
         },
         process.env.JWT_SECRET,
         { expiresIn: '8h' }
       );
 
-      res.json({
-        token,
-        admin: {
-          id: admin.id,
-          email: admin.email,
-          fullName: admin.fullName,
-          adminType: admin.adminType
-        }
+      // Log the login activity
+      await AdminActivity.create({
+        adminId: admin.id,
+        activityType: 'LOGIN',
+        description: 'Admin logged in'
       });
 
+      res.json({
+        success: true,
+        data: {
+          token,
+          admin: {
+            id: admin.id,
+            email: admin.email,
+            fullName: admin.fullName,
+            adminType: admin.adminType
+          }
+        }
+      });
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({
-        message: 'Internal server error',
-        code: 'SERVER_ERROR'
+        success: false,
+        message: 'Internal server error'
       });
     }
   }

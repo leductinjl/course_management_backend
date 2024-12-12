@@ -90,21 +90,40 @@ Grade.belongsTo(Enrollment, { foreignKey: 'enrollmentId' });
 
 // Course Relations with Admin
 Course.belongsTo(Admin, { 
-  foreignKey: 'createdBy', 
-  as: 'creator' 
+  as: 'creator', 
+  foreignKey: 'createdBy' 
 });
+
 Course.belongsTo(Admin, { 
-  foreignKey: 'updatedBy', 
-  as: 'updater' 
+  as: 'updater', 
+  foreignKey: 'updatedBy' 
 });
+
+Course.belongsToMany(Instructor, {
+  through: 'course_instructors',
+  foreignKey: 'courseId',
+  otherKey: 'instructorId',
+  as: 'instructors'
+});
+
+Instructor.belongsToMany(Course, {
+  through: 'course_instructors',
+  foreignKey: 'instructorId',
+  otherKey: 'courseId',
+  as: 'courses'
+});
+
+Course.associate = (models) => {
+  Course.hasMany(models.Class, {
+    foreignKey: 'courseId',
+    as: 'Classes'  // Đảm bảo as viết hoa chữ cái đầu
+  });
+};
 
 // Class Relations
 Class.belongsTo(Course, { foreignKey: 'courseId' });
 Class.belongsTo(Instructor, { foreignKey: 'instructorId' });
-Class.belongsTo(Admin, { 
-  foreignKey: 'createdBy', 
-  as: 'creator' 
-});
+Class.belongsTo(Admin, { as: 'creator', foreignKey: 'createdBy' });
 
 // Course Relations
 Course.hasMany(Class, { foreignKey: 'courseId' });
@@ -119,7 +138,11 @@ Admin.hasMany(Class, {
 });
 
 // Define associations
-Instructor.belongsTo(User);
+Instructor.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'users' // Changed from 'user' to 'User' to match the query
+});
+
 User.hasOne(Instructor);
 
 // Instructor Achievement associations

@@ -16,38 +16,13 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// GET /api/instructors/me - Get current instructor profile
-router.get('/profile', authMiddleware, async (req, res, next) => {
-  try {
-    console.log('User in request:', req.user);
-    const instructor = await instructorController.getCurrentInstructor(req.user.userId);
-    res.json({
-      success: true,
-      data: instructor
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// GET /api/instructors/profile - Get current instructor profile
+router.get('/profile', authMiddleware, instructorController.getCurrentInstructor);
 
 // Achievement routes
-router.get('/:instructorId/achievements', async (req, res, next) => {
-  try {
-    const achievements = await instructorController.getAchievements(req.params.instructorId);
-    res.json({ success: true, data: achievements });
-  } catch (error) {
-    next(error);
-  }
-});
+router.get('/:instructorId/achievements', instructorController.getAchievements);
+router.post('/:instructorId/achievements', instructorController.createAchievement);
 
-router.post('/:instructorId/achievements', authMiddleware, async (req, res, next) => {
-  try {
-    const achievement = await instructorController.createAchievement(req.params.instructorId, req.body);
-    res.status(201).json({ success: true, data: achievement });
-  } catch (error) {
-    next(error);
-  }
-});
 
 // Certificate routes
 router.get('/:instructorId/certificates', async (req, res, next) => {

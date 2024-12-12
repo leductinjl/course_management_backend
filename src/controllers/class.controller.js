@@ -12,11 +12,13 @@ class ClassController {
             include: [
               {
                 model: Course,
-                attributes: ['id', 'name', 'code']
+                attributes: ['id', 'name', 'code', 'credits', 'fee'],
+                required: true
               },
               {
                 model: Instructor,
-                attributes: ['id', 'fullName']
+                attributes: ['id', 'fullName', 'specialization'],
+                required: true
               },
               {
                 model: Admin,
@@ -27,11 +29,14 @@ class ClassController {
             order: [['created_at', 'DESC']]
           });
           
+          console.log('Classes data:', JSON.stringify(classes, null, 2));
+          
           res.json({
             success: true,
             data: classes
           });
         } catch (error) {
+          console.error('Error fetching classes:', error);
           next(new ApiError(500, 'Error fetching classes'));
         }
       }
@@ -602,11 +607,11 @@ class ClassController {
         include: [
           {
             model: Course,
-            attributes: ['id', 'name', 'code']
+            attributes: ['id', 'name', 'code', 'credits', 'fee'],
           },
           {
             model: Instructor,
-            attributes: ['id', 'fullName']
+            attributes: ['id', 'fullName', 'specialization'],
           },
           {
             model: Admin,
@@ -620,25 +625,9 @@ class ClassController {
         return next(new ApiError(404, 'Không tìm thấy lớp học'));
       }
 
-      // Lấy thêm thống kê của lớp học
-      const [enrollmentCount, lessonProgress, announcementCount] = await Promise.all([
-        this.getEnrollmentCount(id),
-        this.getLessonProgress(id),
-        this.getAnnouncementCount(id)
-      ]);
-
-      const classDetails = {
-        ...classData.toJSON(),
-        stats: {
-          enrollmentCount,
-          lessonProgress,
-          announcementCount
-        }
-      };
-
       res.json({
         success: true,
-        data: classDetails
+        data: classData
       });
     } catch (error) {
       console.error('Error getting class:', error);
