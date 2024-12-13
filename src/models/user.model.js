@@ -20,15 +20,15 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('instructor', 'student'),
     allowNull: false
   },
-  loginAttempts: {
+  login_attempts: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  isLocked: {
+  is_locked: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  lastLogin: DataTypes.DATE,
+  last_login: DataTypes.DATE,
   status: {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',

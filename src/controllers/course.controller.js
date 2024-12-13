@@ -11,17 +11,17 @@ class CourseController {
           {
             model: Admin,
             as: 'creator',
-            attributes: ['id', 'fullName']
+            attributes: ['id', 'full_name']
           },
           {
             model: Admin,
             as: 'updater',
-            attributes: ['id', 'fullName']
+            attributes: ['id', 'full_name']
           },
           {
             model: Instructor,
             as: 'instructors',
-            attributes: ['id', 'fullName', 'specialization'],
+            attributes: ['id', 'full_name', 'specialization'],
             through: { attributes: [] }
           }
         ],
@@ -48,17 +48,17 @@ class CourseController {
           {
             model: Admin,
             as: 'creator',
-            attributes: ['id', 'fullName']
+            attributes: ['id', 'full_name']
           },
           {
             model: Admin,
             as: 'updater',
-            attributes: ['id', 'fullName']
+            attributes: ['id', 'full_name']
           },
           {
             model: Instructor,
             as: 'instructors',
-            attributes: ['id', 'fullName', 'specialization'],
+            attributes: ['id', 'full_name', 'specialization'],
             through: { attributes: [] }
           }
         ]
@@ -90,8 +90,8 @@ class CourseController {
 
       const course = await Course.create({
         ...req.body,
-        createdBy: req.admin.id,
-        updatedBy: req.admin.id
+        created_by: req.admin.id,
+        updated_by: req.admin.id
       });
 
       await courseActivityLogger.logCreation(req.admin.id, course);
@@ -111,11 +111,11 @@ class CourseController {
 
   async updateCourse(req, res, next) {
     try {
-      const courseId = req.params.id;
+      const course_id = req.params.id;
       const updateData = req.body;
 
       // Tìm khóa học cần cập nhật
-      const course = await Course.findByPk(courseId);
+      const course = await Course.findByPk(course_id);
       if (!course) {
         return next(new ApiError(404, 'Không tìm thấy khóa học'));
       }
@@ -132,15 +132,15 @@ class CourseController {
       // Cập nhật thông tin khóa học với dữ liệu đã được validate
       const updatedCourse = await course.update({
         ...value, // Sử dụng dữ liệu đã được validate
-        updatedBy: req.admin.id
+        updated_by: req.admin.id
       });
 
       // Lấy thông tin admin đã cập nhật
-      const updatedCourseWithAdmin = await Course.findByPk(courseId, {
+      const updatedCourseWithAdmin = await Course.findByPk(course_id, {
         include: [{
           model: Admin,
           as: 'creator',
-          attributes: ['id', 'fullName']
+          attributes: ['id', 'full_name']
         }]
       });
 
@@ -203,23 +203,23 @@ class CourseController {
 
   async assignInstructors(req, res, next) {
     try {
-      const { courseId } = req.params;
-      const { instructorIds } = req.body;
+      const { course_id } = req.params;
+      const { instructor_ids } = req.body;
 
-      const course = await Course.findByPk(courseId);
+      const course = await Course.findByPk(course_id);
       if (!course) {
         throw new ApiError(404, 'Không tìm thấy khóa học');
       }
 
       // Set the instructors for the course
-      await course.setInstructors(instructorIds);
+      await course.setInstructors(instructor_ids);
 
       // Fetch updated course with instructors
-      const updatedCourse = await Course.findByPk(courseId, {
+      const updatedCourse = await Course.findByPk(course_id, {
         include: [{
           model: Instructor,
           as: 'instructors',
-          attributes: ['id', 'fullName', 'specialization'],
+          attributes: ['id', 'full_name', 'specialization'],
           through: { attributes: [] }
         }]
       });
@@ -231,6 +231,52 @@ class CourseController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+
+  async getStudentAvailableCourses() {
+    try {
+      const courses = await Course.findAll({
+        where: {
+          status: ['active', 'draft'], // Chỉ lấy các môn đang mở hoặc sắp mở
+        },
+        include: [
+          {
+            model: Instructor,
+            as: 'instructors',
+            attributes: ['id', 'full_name', 'specialization'],
+            through: { attributes: [] }
+          }
+        ],
+        attributes: [
+          'id', 'code', 'name', 'description', 'credits', 
+          'type', 'status', 'fee', 'created_at', 'updated_at'
+        ],
+        order: [
+          ['status', 'ASC'],
+          ['created_at', 'DESC']
+        ]
+      });
+
+      // Log để debug
+      console.log('Found courses:', JSON.stringify(courses, null, 2));
+
+      // Format lại response để dễ sử dụng ở frontend
+      const formattedCourses = courses.map(course => {
+        const courseJson = course.toJSON();
+        return {
+          ...courseJson,
+          instructors: courseJson.instructors || []
+        };
+      });
+
+      // Log formatted courses
+      console.log('Formatted courses:', JSON.stringify(formattedCourses, null, 2));
+
+      return formattedCourses;
+    } catch (error) {
+      console.error('Error in getStudentAvailableCourses:', error);
+      throw new ApiError(500, 'Lỗi khi lấy danh sách môn học');
     }
   }
 }

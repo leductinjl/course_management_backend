@@ -7,19 +7,24 @@ const ExamRegistration = sequelize.define('ExamRegistration', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  studentId: {
+  student_id: {
     type: DataTypes.UUID,
     references: {
       model: 'students',
       key: 'id'
     }
   },
-  examSessionId: {
+  exam_session_id: {
     type: DataTypes.UUID,
     references: {
       model: 'exam_sessions',
       key: 'id'
     }
+  },
+  registration_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   },
   status: {
     type: DataTypes.STRING,

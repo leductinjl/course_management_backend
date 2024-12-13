@@ -8,7 +8,7 @@ const loginSchema = Joi.object({
 const studentRegisterSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  fullName: Joi.string().required(),
+  full_name: Joi.string().required(),
   phoneNumber: Joi.string().pattern(/^[0-9]{10}$/),
   address: Joi.string()
 });

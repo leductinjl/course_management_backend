@@ -7,14 +7,14 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  instructorId: {
+  instructor_id: {
     type: DataTypes.UUID,
     references: {
       model: 'instructors',
       key: 'id'
     }
   },
-  classId: {
+  class_id: {
     type: DataTypes.UUID,
     references: {
       model: 'classes',
@@ -29,12 +29,12 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
     type: DataTypes.STRING,
     defaultValue: 'pending'
   },
-  confirmedByInstructor: {
+  confirmed_by_instructor: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  confirmedAt: DataTypes.DATE,
-  processedBy: {
+  confirmed_at: DataTypes.DATE,
+  processed_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',

@@ -1,14 +1,14 @@
 const { AdminActivity } = require('../models');
 
 class AdminActivityController {
-  async logActivity(adminId, activityType, description, affectedTable = null, affectedId = null) {
+  async logActivity(admin_id, activity_type, description, affected_table = null, affected_id = null) {
     try {
       return await AdminActivity.create({
-        adminId,
-        activityType,
+        admin_id,
+        activity_type,
         description,
-        affectedTable,
-        affectedId
+        affected_table,
+        affected_id
       });
     } catch (error) {
       console.error('Error logging admin activity:', error);
@@ -19,7 +19,7 @@ class AdminActivityController {
   async getActivities(req, res) {
     try {
       const activities = await AdminActivity.findAll({
-        where: { adminId: req.admin.id },
+        where: { admin_id: req.admin.id },
         order: [['created_at', 'DESC']],
         limit: 100
       });

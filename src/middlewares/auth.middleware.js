@@ -1,37 +1,25 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
 const { ApiError } = require('../utils/apiError');
 
-const authMiddleware = async (req, res, next) => {
+const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
+    const authHeader = req.headers.authorization;
+    console.log('Auth header:', authHeader);
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new ApiError(401, 'No token provided');
     }
 
+    const token = authHeader.split(' ')[1];
+    console.log('Token:', token);
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id, {
-      attributes: ['id', 'email', 'role', 'status']
-    });
+    console.log('Decoded token:', decoded);
 
-    if (!user) {
-      throw new ApiError(401, 'User not found');
-    }
-
-    if (user.status !== 'active') {
-      throw new ApiError(403, 'Account is inactive');
-    }
-
-    req.user = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      status: user.status
-    };
-
+    req.user = decoded;
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
     next(new ApiError(401, 'Invalid or expired token'));
   }
 };

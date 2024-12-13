@@ -7,15 +7,17 @@ const Enrollment = sequelize.define('Enrollment', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  studentId: {
+  student_id: {
     type: DataTypes.UUID,
+    allowNull: false,
     references: {
       model: 'students',
       key: 'id'
     }
   },
-  classId: {
+  class_id: {
     type: DataTypes.UUID,
+    allowNull: false,
     references: {
       model: 'classes',
       key: 'id'
@@ -23,20 +25,31 @@ const Enrollment = sequelize.define('Enrollment', {
   },
   status: {
     type: DataTypes.STRING,
-    defaultValue: 'active'
-  },
-  processedBy: {
-    type: DataTypes.UUID,
-    references: {
-      model: 'admins',
-      key: 'id'
+    allowNull: false,
+    defaultValue: 'enrolled',
+    validate: {
+      isIn: [['enrolled', 'completed', 'cancelled']]
     }
+  },
+  enrolled_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
+  cancelled_at: {
+    type: DataTypes.DATE
   }
 }, {
   tableName: 'enrollments',
   timestamps: true,
-  createdAt: 'enrollment_date',
-  updatedAt: 'updated_at'
+  createdAt: 'created_at',  
+  updatedAt: 'updated_at',
+  indexes: [
+    {
+      unique: true,
+      fields: ['student_id', 'class_id']
+    }
+  ]
 });
 
 module.exports = Enrollment; 

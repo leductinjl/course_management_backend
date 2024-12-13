@@ -29,7 +29,7 @@ const adminAuthMiddleware = async (req, res, next) => {
         id: decoded.id,
         status: 'active'
       },
-      attributes: ['id', 'email', 'adminType', 'fullName', 'status']
+      attributes: ['id', 'email', 'admin_type', 'full_name', 'status']
     });
 
     if (!admin) {
@@ -39,8 +39,8 @@ const adminAuthMiddleware = async (req, res, next) => {
     req.admin = {
       id: admin.id,
       email: admin.email,
-      adminType: admin.adminType,
-      fullName: admin.fullName
+      admin_type: admin.admin_type,
+      full_name: admin.full_name
     };
 
     next();

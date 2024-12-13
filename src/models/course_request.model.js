@@ -7,34 +7,34 @@ const CourseRequest = sequelize.define('CourseRequest', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  instructorId: {
+  instructor_id: {
     type: DataTypes.UUID,
     references: {
       model: 'instructors',
       key: 'id'
     }
   },
-  courseId: {
+  course_id: {
     type: DataTypes.UUID,
     references: {
       model: 'courses',
       key: 'id'
     }
   },
-  desiredStartDate: DataTypes.DATE,
-  desiredSchedule: DataTypes.TEXT,
+  desired_start_date: DataTypes.DATE,
+  desired_schedule: DataTypes.TEXT,
   status: {
     type: DataTypes.STRING,
     defaultValue: 'pending'
   },
-  reviewedBy: {
+  reviewed_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',
       key: 'id'
     }
   },
-  adminNotes: DataTypes.TEXT
+  admin_notes: DataTypes.TEXT
 }, {
   tableName: 'course_requests',
   timestamps: true,

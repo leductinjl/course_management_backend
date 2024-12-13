@@ -1,27 +1,28 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const ExamSession = sequelize.define('ExamSession', {
+const CertificateRequirement = sequelize.define('CertificateRequirement', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  certificateTypeId: {
+  certificate_type_id: {
     type: DataTypes.UUID,
     references: {
       model: 'certificate_types',
       key: 'id'
     }
   },
-  examDate: DataTypes.DATE,
-  room: DataTypes.STRING,
-  capacity: DataTypes.INTEGER,
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'upcoming'
+  course_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'courses',
+      key: 'id'
+    }
   },
-  createdBy: {
+  minimum_grade: DataTypes.DECIMAL(4, 2),
+  created_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',
@@ -29,10 +30,10 @@ const ExamSession = sequelize.define('ExamSession', {
     }
   }
 }, {
-  tableName: 'exam_sessions',
+  tableName: 'certificate_requirements',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: 'updated_at'
+  updatedAt: 'updated_at',
 });
 
-module.exports = ExamSession; 
+module.exports = CertificateRequirement; 

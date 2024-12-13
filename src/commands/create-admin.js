@@ -16,8 +16,8 @@ async function createAdmin() {
     
     const email = await question('Enter admin email: ');
     const password = await question('Enter admin password: ');
-    const fullName = await question('Enter full name: ');
-    const adminType = await question('Enter admin type (super_admin/course_admin/user_admin/finance_admin): ');
+    const full_name = await question('Enter full name: ');
+    const admin_type = await question('Enter admin type (super_admin/course_admin/user_admin/finance_admin): ');
     const phone = await question('Enter phone number: ');
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -26,11 +26,11 @@ async function createAdmin() {
       id: uuidv4(),
       email,
       password: hashedPassword,
-      fullName,
-      adminType,
+      full_name,
+      admin_type,
       phone,
       loginAttempts: 0,
-      isLocked: false,
+      is_locked: false,
       status: 'active'
     });
 
@@ -38,8 +38,8 @@ async function createAdmin() {
     console.log({
       id: admin.id,
       email: admin.email,
-      fullName: admin.fullName,
-      adminType: admin.adminType
+      full_name: admin.full_name,
+      admin_type: admin.admin_type
     });
 
   } catch (error) {

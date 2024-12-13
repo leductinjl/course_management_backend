@@ -7,27 +7,27 @@ const Class = sequelize.define('Class', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  courseId: {
+  course_id: {
     type: DataTypes.UUID,
     references: {
       model: 'courses',
       key: 'id'
     }
   },
-  instructorId: {
+  instructor_id: {
     type: DataTypes.UUID,
     references: {
       model: 'instructors',
       key: 'id'
     }
   },
-  classCode: {
+  class_code: {
     type: DataTypes.STRING,
     unique: true,
     allowNull: false
   },
-  startDate: DataTypes.DATE,
-  endDate: DataTypes.DATE,
+  start_date: DataTypes.DATE,
+  end_date: DataTypes.DATE,
   schedule: DataTypes.TEXT,
   room: DataTypes.STRING,
   capacity: {
@@ -42,14 +42,14 @@ const Class = sequelize.define('Class', {
       isIn: [['upcoming', 'ongoing', 'completed', 'cancelled']]
     }
   },
-  createdBy: {
+  created_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',
       key: 'id'
     }
   },
-  updatedBy: {
+  updated_by: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {

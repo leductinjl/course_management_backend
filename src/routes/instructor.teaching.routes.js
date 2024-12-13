@@ -11,6 +11,6 @@ router.use(instructorAuthMiddleware);
 // Teaching schedule routes
 router.get('/schedule', instructorTeachingController.getTeachingSchedule);
 router.get('/courses', instructorTeachingController.getInstructorCourses);
-router.patch('/classes/:classId/status', instructorTeachingController.updateClassStatus);
+router.patch('/classes/:class_id/status', instructorTeachingController.updateClassStatus);
 
 module.exports = router;

@@ -6,48 +6,48 @@ class InstructorTeachingController {
   async getTeachingSchedule(req, res) {
     try {
       const { week = 'current' } = req.query;
-      const instructorId = req.instructor.id;
+      const instructor_id = req.instructor.id;
 
       // Calculate date range based on week parameter
-      let startDate, endDate;
+      let start_date, end_date;
       const today = new Date();
       
       switch(week) {
         case 'next':
-          startDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+          start_date = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+          end_date = new Date(start_date.getTime() + 7 * 24 * 60 * 60 * 1000);
           break;
         case 'all':
-          startDate = today;
-          endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+          start_date = today;
+          end_date = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
           break;
         default: // current
-          startDate = today;
-          endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+          start_date = today;
+          end_date = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
       }
 
       const classes = await Class.findAll({
         where: {
-          instructorId,
-          startDate: { [Op.lte]: endDate },
-          endDate: { [Op.gte]: startDate }
+          instructor_id,
+          start_date: { [Op.lte]: end_date },
+          end_date: { [Op.gte]: start_date }
         },
         include: [{
           model: Course,
           attributes: ['code', 'name']
         }],
-        order: [['startDate', 'ASC']]
+        order: [['start_date', 'ASC']]
       });
 
       const schedules = classes.map(cls => ({
         id: cls.id,
         courseCode: cls.Course.code,
         courseName: cls.Course.name,
-        classCode: cls.classCode,
+        class_code: cls.class_code,
         schedule: cls.schedule,
         room: cls.room,
-        startDate: cls.startDate,
-        endDate: cls.endDate,
+        start_date: cls.start_date,
+        end_date: cls.end_date,
         status: cls.status
       }));
 
@@ -67,7 +67,7 @@ class InstructorTeachingController {
   async getInstructorCourses(req, res) {
     try {
       const instructor = await Instructor.findOne({
-        where: { userId: req.user.id }
+        where: { user_id: req.user.id }
       });
 
       if (!instructor) {
@@ -80,13 +80,13 @@ class InstructorTeachingController {
       console.log('Instructor found:', instructor.id);
       
       console.log('Querying classes with:', {
-        instructorId: instructor.id,
+        instructor_id: instructor.id,
         status: ['upcoming', 'ongoing']
       });
 
       const classes = await Class.findAll({
         where: {
-          instructorId: instructor.id,
+          instructor_id: instructor.id,
           status: ['upcoming', 'ongoing']
         },
         include: [{
@@ -94,7 +94,7 @@ class InstructorTeachingController {
           as: 'Course',
           attributes: ['id', 'code', 'name', 'credits', 'description']
         }],
-        order: [['startDate', 'ASC']]
+        order: [['start_date', 'ASC']]
       });
 
       console.log('Found classes:', classes);
@@ -114,7 +114,7 @@ class InstructorTeachingController {
         }
         coursesMap.get(course.id).classes.push({
           id: cls.id,
-          classCode: cls.classCode,
+          class_code: cls.class_code,
           schedule: cls.schedule,
           room: cls.room,
           status: cls.status
@@ -135,14 +135,14 @@ class InstructorTeachingController {
 
   async updateClassStatus(req, res) {
     try {
-      const { classId } = req.params;
+      const { class_id } = req.params;
       const { status } = req.body;
-      const instructorId = req.instructor.id;
+      const instructor_id = req.instructor.id;
 
       const cls = await Class.findOne({
         where: {
-          id: classId,
-          instructorId
+          id: class_id,
+          instructor_id
         }
       });
 

@@ -12,14 +12,14 @@ class UserManagementController {
             model: Student,
             as: 'studentProfile',
             attributes: { 
-              exclude: ['createdAt', 'updatedAt', 'password'] 
+              exclude: ['created_at', 'updated_at', 'password'] 
             }
           },
           { 
             model: Instructor,
             as: 'instructorProfile',
             attributes: { 
-              exclude: ['createdAt', 'updatedAt', 'password'] 
+              exclude: ['created_at', 'updated_at', 'password'] 
             }
           }
         ],
@@ -46,7 +46,7 @@ class UserManagementController {
     const t = await sequelize.transaction();
 
     try {
-      const { email, password, fullName, role, status = 'active' } = req.body;
+      const { email, password, full_name, role, status = 'active' } = req.body;
 
       // Check if admin exists in request
       if (!req.admin || !req.admin.id) {
@@ -59,7 +59,7 @@ class UserManagementController {
       }
 
       // Validate required fields
-      if (!email || !password || !fullName || !role) {
+      if (!email || !password || !full_name || !role) {
         await t.rollback();
         return res.status(400).json({
           success: false,
@@ -98,15 +98,15 @@ class UserManagementController {
       let profile;
       if (role === 'student') {
         profile = await Student.create({
-          userId: user.id,
-          fullName,
-          createdBy: req.admin.id,
+          user_id: user.id,
+          full_name,
+          created_by: req.admin.id,
         }, { transaction: t });
       } else if (role === 'instructor') {
         profile = await Instructor.create({
-          userId: user.id,
-          fullName,
-          createdBy: req.admin.id,
+          user_id: user.id,
+          full_name,
+          created_by: req.admin.id,
         }, { transaction: t });
       }
 
@@ -116,7 +116,7 @@ class UserManagementController {
       await adminActivityController.logActivity(
         req.admin.id,
         'CREATE_USER',
-        `Created new ${role}: ${fullName}`,
+        `Created new ${role}: ${full_name}`,
         'users',
         user.id
       );
@@ -157,7 +157,7 @@ class UserManagementController {
   async updateUser(req, res) {
     try {
       const { id } = req.params;
-      const { email, fullName, status, ...userData } = req.body;
+      const { email, full_name, status, ...userData } = req.body;
 
       const result = await sequelize.transaction(async (t) => {
         const user = await User.findByPk(id);
@@ -176,24 +176,24 @@ class UserManagementController {
         if (user.role === 'student') {
           await Student.update(
             { 
-              fullName,
-              updatedBy: req.admin.id,
+              full_name,
+              updated_by: req.admin.id,
               ...userData 
             },
             { 
-              where: { userId: id },
+              where: { user_id: id },
               transaction: t 
             }
           );
         } else if (user.role === 'instructor') {
           await Instructor.update(
             { 
-              fullName,
-              updatedBy: req.admin.id,
+              full_name,
+              updated_by: req.admin.id,
               ...userData 
             },
             { 
-              where: { userId: id },
+              where: { user_id: id },
               transaction: t 
             }
           );
@@ -205,7 +205,7 @@ class UserManagementController {
       await adminActivityController.logActivity(
         req.admin.id,
         'UPDATE_USER',
-        `Updated ${result.role}: ${fullName}`,
+        `Updated ${result.role}: ${full_name}`,
         'users',
         id
       );

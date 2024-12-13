@@ -7,7 +7,7 @@ const InstructorWorkHistory = sequelize.define('InstructorWorkHistory', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  instructorId: {
+  instructor_id: {
     type: DataTypes.UUID,
     references: {
       model: 'instructors',
@@ -23,11 +23,11 @@ const InstructorWorkHistory = sequelize.define('InstructorWorkHistory', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  startDate: {
+  start_date: {
     type: DataTypes.DATE,
     allowNull: false
   },
-  endDate: DataTypes.DATE,
+  end_date: DataTypes.DATE,
   responsibilities: {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     defaultValue: []

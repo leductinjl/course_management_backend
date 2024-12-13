@@ -9,7 +9,7 @@ class AdminController {
 
       const admin = await Admin.findOne({ 
         where: { email },
-        attributes: ['id', 'email', 'password', 'adminType', 'fullName', 'status', 'isLocked']
+        attributes: ['id', 'email', 'password', 'admin_type', 'full_name', 'status', 'is_locked']
       });
 
       if (!admin) {
@@ -40,7 +40,7 @@ class AdminController {
           id: admin.id,
           email: admin.email,
           role: 'admin',
-          adminType: admin.adminType,
+          admin_type: admin.admin_type,
           isAdmin: true
         },
         process.env.JWT_SECRET,
@@ -49,8 +49,8 @@ class AdminController {
 
       // Log the login activity
       await AdminActivity.create({
-        adminId: admin.id,
-        activityType: 'LOGIN',
+        admin_id: admin.id,
+        activity_type: 'LOGIN',
         description: 'Admin logged in'
       });
 
@@ -61,8 +61,8 @@ class AdminController {
           admin: {
             id: admin.id,
             email: admin.email,
-            fullName: admin.fullName,
-            adminType: admin.adminType
+            full_name: admin.full_name,
+            admin_type: admin.admin_type
           }
         }
       });
@@ -77,12 +77,12 @@ class AdminController {
 
   async logout(req, res) {
     try {
-      const adminId = req.admin.id;
+      const admin_id = req.admin.id;
       
       // Log activity
       await AdminActivity.create({
-        adminId,
-        activityType: 'LOGOUT',
+        admin_id,
+        activity_type: 'LOGOUT',
         description: 'Admin logged out'
       });
 
@@ -131,7 +131,7 @@ class AdminController {
       }
 
       // Update allowed fields
-      const allowedFields = ['fullName', 'phone'];
+      const allowedFields = ['full_name', 'phone'];
       allowedFields.forEach(field => {
         if (req.body[field]) {
           admin[field] = req.body[field];
@@ -142,8 +142,8 @@ class AdminController {
 
       // Log activity
       await AdminActivity.create({
-        adminId: admin.id,
-        activityType: 'PROFILE_UPDATE',
+        admin_id: admin.id,
+        activity_type: 'PROFILE_UPDATE',
         description: 'Admin updated their profile'
       });
 

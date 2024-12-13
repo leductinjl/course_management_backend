@@ -55,7 +55,8 @@ class AuthController {
         where: { email, role: 'instructor' },
         include: [{
           model: Instructor,
-          as: 'instructorProfile'
+          as: 'instructorProfile',
+          foreignKey: 'user_id'
         }]
       });
 
@@ -71,8 +72,7 @@ class AuthController {
         { 
           id: user.id,
           email: user.email,
-          role: 'instructor',
-          userId: user.userId
+          role: 'instructor'
         },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
@@ -97,7 +97,7 @@ class AuthController {
 
   async studentRegister(req, res, next) {
     try {
-      const { email, password, fullName, phoneNumber, address } = req.body;
+      const { email, password, full_name, phoneNumber, address } = req.body;
 
       // Check if email exists
       const existingUser = await User.findOne({ where: { email } });
@@ -116,8 +116,8 @@ class AuthController {
 
       // Create student profile
       await Student.create({
-        userId: user.id,
-        fullName,
+        user_id: user.id,
+        full_name,
         phoneNumber,
         address
       });

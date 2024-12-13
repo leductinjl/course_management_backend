@@ -1,31 +1,31 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const InstructorAchievement = sequelize.define('InstructorAchievement', {
+const AdminActivity = sequelize.define('AdminActivity', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  instructorId: {
+  admin_id: {
     type: DataTypes.UUID,
     references: {
-      model: 'instructors',
+      model: 'admins',
       key: 'id'
-    },
-    allowNull: false
+    }
   },
-  title: {
+  activity_type: {
     type: DataTypes.STRING,
     allowNull: false
   },
   description: DataTypes.TEXT,
-  achievementDate: DataTypes.DATE
+  affected_table: DataTypes.STRING,
+  affected_id: DataTypes.UUID
 }, {
-  tableName: 'instructor_achievements',
+  tableName: 'admin_activities',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: 'updated_at'
-}); 
+  updatedAt: 'updated_at',
+});
 
-module.exports = InstructorAchievement; 
+module.exports = AdminActivity; 

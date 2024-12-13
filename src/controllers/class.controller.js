@@ -1,5 +1,5 @@
 const { literal } = require('sequelize');
-const { Class, Course, Instructor, Admin, User, sequelize, ActivityLog } = require('../models');
+const { Class, Course, Instructor, Admin, User, sequelize, ActivityLog, Enrollment, Student } = require('../models');
 const { validateClass } = require('../validators/class.validator');
 const { ApiError } = require('../utils/apiError');
 const { classActivityLogger } = require('../utils/activityLogger');
@@ -17,13 +17,13 @@ class ClassController {
               },
               {
                 model: Instructor,
-                attributes: ['id', 'fullName', 'specialization'],
+                attributes: ['id', 'full_name', 'specialization'],
                 required: true
               },
               {
                 model: Admin,
                 as: 'creator',
-                attributes: ['id', 'fullName']
+                attributes: ['id', 'full_name']
               }
             ],
             order: [['created_at', 'DESC']]
@@ -55,7 +55,7 @@ class ClassController {
           }
     
           // Kiểm tra course status
-          const course = await Course.findByPk(value.courseId);
+          const course = await Course.findByPk(value.course_id);
           if (!course) {
             return next(new ApiError(404, 'Không tìm thấy khóa học'));
           }
@@ -65,12 +65,12 @@ class ClassController {
     
           // Kiểm tra instructor status
           const instructor = await Instructor.findOne({
-            where: { id: value.instructorId },
+            where: { id: value.instructor_id },
             include: [{
               model: User,
               attributes: ['status'],
               required: true,
-              on: literal('"Instructor"."userId" = "User"."id"')
+              on: literal('"Instructor"."user_id" = "User"."id"')
             }]
           });
           
@@ -82,20 +82,20 @@ class ClassController {
           }
     
           // Tạo mã lớp
-          let classCode = value.classCode 
-            ? `${course.code}-${value.classCode}`
+          let class_code = value.class_code 
+            ? `${course.code}-${value.class_code}`
             : `${course.code}-01`;
     
           // Kiểm tra mã lớp tồn tại và tự động tạo mã lớp mới nếu cần
           let existingClass = await Class.findOne({ 
-            where: { classCode } 
+            where: { class_code } 
           });
     
           let counter = 1;
           while (existingClass) {
-            classCode = `${course.code}-${String(counter).padStart(2, '0')}`;
+            class_code = `${course.code}-${String(counter).padStart(2, '0')}`;
             existingClass = await Class.findOne({ 
-              where: { classCode } 
+              where: { class_code } 
             });
             counter++;
           }
@@ -103,9 +103,9 @@ class ClassController {
           // Tạo lớp mới
           const newClass = await Class.create({
             ...value,
-            classCode,
-            createdBy: req.admin.id,
-            updatedBy: req.admin.id
+            class_code,
+            created_by: req.admin.id,
+            updated_by: req.admin.id
           });
     
           // Log hoạt động sau khi lớp đã được tạo thành công
@@ -132,7 +132,7 @@ class ClassController {
           }
 
           // Kiểm tra và lọc dữ liệu đầu vào
-          const allowedFields = ['startDate', 'endDate', 'schedule', 'room', 'capacity', 'status'];
+          const allowedFields = ['start_date', 'end_date', 'schedule', 'room', 'capacity', 'status'];
           const updateData = allowedFields.reduce((acc, field) => {
             if (req.body && req.body[field] !== undefined) {
               acc[field] = req.body[field];
@@ -140,8 +140,8 @@ class ClassController {
             return acc;
           }, {});
 
-          // Thêm updatedBy
-          updateData.updatedBy = req.admin.id;
+          // Thêm updated_by
+          updateData.updated_by = req.admin.id;
 
           // Validate dữ liệu
           if (Object.keys(updateData).length === 0) {
@@ -155,10 +155,10 @@ class ClassController {
           }
 
           // Validate dates if provided
-          if (updateData.startDate && updateData.endDate) {
-            const startDate = new Date(updateData.startDate);
-            const endDate = new Date(updateData.endDate);
-            if (endDate <= startDate) {
+          if (updateData.start_date && updateData.end_date) {
+            const start_date = new Date(updateData.start_date);
+            const end_date = new Date(updateData.end_date);
+            if (end_date <= start_date) {
               return next(new ApiError(400, 'Ngày kết thúc phải sau ngày bắt đầu'));
             }
           }
@@ -192,7 +192,7 @@ class ClassController {
               },
               {
                 model: Instructor,
-                attributes: ['id', 'fullName']
+                attributes: ['id', 'full_name']
               }
             ]
           });
@@ -236,8 +236,8 @@ class ClassController {
           const instructors = await Instructor.findAll({
             attributes: [
               'id',
-              'fullName',
-              'userId'
+              'full_name',
+              'user_id'
             ],
             include: [{
               model: User,
@@ -246,10 +246,10 @@ class ClassController {
                 status: 'active'
               },
               required: true,
-              on: literal('"Instructor"."userId" = "User"."id"')
+              on: literal('"Instructor"."user_id" = "User"."id"')
             }],
             order: [
-              ['fullName', 'ASC']
+              ['full_name', 'ASC']
             ],
             logging: console.log
           });
@@ -258,7 +258,7 @@ class ClassController {
 
           const formattedInstructors = instructors.map(instructor => ({
             id: instructor.id,
-            fullName: instructor.fullName,
+            full_name: instructor.full_name,
             user: instructor.User ? {
               id: instructor.User.id,
               email: instructor.User.email,
@@ -294,11 +294,11 @@ class ClassController {
       }
 
   // Hàm tính tổng số buổi học
-  async calculateTotalLessons(schedule, startDate, endDate) {
+  async calculateTotalLessons(schedule, start_date, end_date) {
     try {
       const { days } = this.parseSchedule(schedule);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const start = new Date(start_date);
+      const end = new Date(end_date);
       
       // Map các ngày trong tuần sang số (0 = Chủ nhật, 1 = Thứ 2,...)
       const dayMapping = {
@@ -335,11 +335,11 @@ class ClassController {
   }
 
   // Hàm tính số buổi học đã hoàn thành
-  async calculateCompletedLessons(schedule, startDate, endDate) {
+  async calculateCompletedLessons(schedule, start_date, end_date) {
     try {
       const { days } = this.parseSchedule(schedule);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const start = new Date(start_date);
+      const end = new Date(end_date);
       const now = new Date();
 
       // Nếu chưa bắt đầu khóa học
@@ -347,7 +347,7 @@ class ClassController {
       
       // Nếu đã kết thúc khóa học
       if (now > end) {
-        return this.calculateTotalLessons(schedule, startDate, endDate);
+        return this.calculateTotalLessons(schedule, start_date, end_date);
       }
 
       // Map các ngày trong tuần
@@ -421,14 +421,14 @@ class ClassController {
 
       const totalLessons = this.calculateTotalLessons(
         classData.schedule,
-        classData.startDate,
-        classData.endDate
+        classData.start_date,
+        classData.end_date
       );
 
       const completedLessons = this.calculateCompletedLessons(
         totalLessons,
-        classData.startDate,
-        classData.endDate
+        classData.start_date,
+        classData.end_date
       );
 
       res.json({
@@ -482,7 +482,7 @@ class ClassController {
       
       const classesThisMonth = await Class.count({
         where: {
-          startDate: {
+          start_date: {
             [Op.gte]: startOfMonth
           }
         }
@@ -491,7 +491,7 @@ class ClassController {
       // Sửa lại phần query top courses để chỉ rõ id của bảng Class
       const topCourses = await Class.findAll({
         attributes: [
-          'courseId',
+          'course_id',
           [sequelize.fn('COUNT', sequelize.col('Class.id')), 'classCount']
         ],
         include: [{
@@ -499,7 +499,7 @@ class ClassController {
           attributes: ['name', 'code'],
           required: true
         }],
-        group: ['Class.courseId', 'Course.id', 'Course.name', 'Course.code'],
+        group: ['Class.course_id', 'Course.id', 'Course.name', 'Course.code'],
         order: [[sequelize.fn('COUNT', sequelize.col('Class.id')), 'DESC']],
         limit: 5
       });
@@ -516,7 +516,7 @@ class ClassController {
           },
           classesThisMonth,
           topCourses: topCourses.map(c => ({
-            courseId: c.courseId,
+            course_id: c.course_id,
             courseName: c.Course.name,
             courseCode: c.Course.code,
             classCount: parseInt(c.get('classCount'))
@@ -530,9 +530,9 @@ class ClassController {
   }
 
   // Helper methods
-  calculateTotalLessons(schedule, startDate, endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+  calculateTotalLessons(schedule, start_date, end_date) {
+    const start = new Date(start_date);
+    const end = new Date(end_date);
     const days = schedule.split(',').map(day => day.trim().toUpperCase());
     
     let totalLessons = 0;
@@ -549,10 +549,10 @@ class ClassController {
     return totalLessons;
   }
 
-  calculateCompletedLessons(totalLessons, startDate, endDate) {
+  calculateCompletedLessons(totalLessons, start_date, end_date) {
     const now = new Date();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(start_date);
+    const end = new Date(end_date);
     
     if (now < start) return 0;
     if (now > end) return totalLessons;
@@ -573,7 +573,7 @@ class ClassController {
   }
 
   // Helper method to generate class code
-  async generateClassCode(courseCode) {
+  async generateclass_code(courseCode) {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const semester = Math.floor(date.getMonth() / 4) + 1;
@@ -582,16 +582,16 @@ class ClassController {
     // Find the highest sequence number for this base code
     const latestClass = await Class.findOne({
       where: {
-        classCode: {
+        class_code: {
           [Op.like]: `${baseCode}-%`
         }
       },
-      order: [['classCode', 'DESC']]
+      order: [['class_code', 'DESC']]
     });
 
     let sequence = 1;
     if (latestClass) {
-      const lastSequence = parseInt(latestClass.classCode.split('-').pop());
+      const lastSequence = parseInt(latestClass.class_code.split('-').pop());
       sequence = lastSequence + 1;
     }
 
@@ -611,12 +611,12 @@ class ClassController {
           },
           {
             model: Instructor,
-            attributes: ['id', 'fullName', 'specialization'],
+            attributes: ['id', 'full_name', 'specialization'],
           },
           {
             model: Admin,
             as: 'creator',
-            attributes: ['id', 'fullName']
+            attributes: ['id', 'full_name']
           }
         ]
       });
@@ -636,12 +636,12 @@ class ClassController {
   }
 
   // Helper methods cho thống kê
-  async getEnrollmentCount(classId) {
+  async getEnrollmentCount(class_id) {
     // Implement logic đếm số học viên đăng ký
     return 0; // Placeholder
   }
 
-  async getLessonProgress(classId) {
+  async getLessonProgress(class_id) {
     // Implement logic tính tiến độ bài học
     return {
       total: 0,
@@ -649,9 +649,147 @@ class ClassController {
     }; // Placeholder
   }
 
-  async getAnnouncementCount(classId) {
+  async getAnnouncementCount(class_id) {
     // Implement logic đếm số thông báo
     return 0; // Placeholder
+  }
+
+  // Thêm method mới
+  async getAvailableClasses(req, res, next) {
+    try {
+      const { course_id } = req.params;
+      
+      const classes = await Class.findAll({
+        where: {
+          course_id,
+          status: 'upcoming', // Chỉ lấy các lớp sắp mở
+        },
+        include: [
+          {
+            model: Instructor,
+            attributes: ['id', 'full_name', 'specialization'],
+          }
+        ],
+        attributes: [
+          'id', 'class_code', 'schedule', 'room', 'capacity',
+          'start_date', 'end_date', 'status'
+        ]
+      });
+
+      // Lấy số lượng học viên đã đăng ký cho mỗi lớp
+      const classesWithCount = await Promise.all(
+        classes.map(async (classItem) => {
+          const enrollmentCount = await Enrollment.count({
+            where: {
+              class_id: classItem.id,
+              status: 'enrolled'
+            }
+          });
+
+          return {
+            ...classItem.toJSON(),
+            enrollmentCount
+          };
+        })
+      );
+
+      res.json({
+        success: true,
+        data: classesWithCount
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAvailableClassesForStudent(course_id, user_id) {
+    try {
+      // Kiểm tra course tồn tại
+      const course = await Course.findByPk(course_id);
+      if (!course) {
+        throw new ApiError(404, 'Không tìm thấy môn học');
+      }
+
+      const classes = await Class.findAll({
+        where: {
+          course_id,
+          status: ['upcoming', 'ongoing', 'active'],
+        },
+        include: [
+          {
+            model: Instructor,
+            attributes: ['id', 'full_name', 'specialization'],
+          },
+          {
+            model: Course,
+            attributes: ['id', 'name', 'code'],
+            where: { id: course_id }
+          }
+        ],
+        attributes: [
+          'id', 
+          'class_code',
+          'schedule',
+          'room',
+          'capacity',
+          'start_date',
+          'end_date',
+          'status'
+        ],
+        order: [
+          ['start_date', 'ASC']
+        ]
+      });
+
+      // Log để debug
+      console.log(`Found ${classes.length} classes for course ${course_id}`);
+
+      // Lấy student_id từ user_id
+      const student = await Student.findOne({
+        where: { user_id }
+      });
+
+      if (!student) {
+        throw new ApiError(404, 'Không tìm thấy thông tin học viên');
+      }
+
+      const classesWithEnrollmentCount = await Promise.all(
+        classes.map(async (classItem) => {
+          const enrollmentCount = await Enrollment.count({
+            where: {
+              class_id: classItem.id,
+              status: 'enrolled'
+            }
+          });
+
+          // Kiểm tra xem học viên đã đăng ký lớp này chưa
+          const isEnrolled = await Enrollment.findOne({
+            where: {
+              class_id: classItem.id,
+              student_id: student.id,
+              status: 'enrolled'
+            }
+          });
+
+          return {
+            ...classItem.toJSON(),
+            enrollmentCount,
+            isEnrolled: !!isEnrolled,
+            instructor: classItem.Instructor ? {
+              id: classItem.Instructor.id,
+              full_name: classItem.Instructor.full_name,
+              specialization: classItem.Instructor.specialization
+            } : null
+          };
+        })
+      );
+
+      return classesWithEnrollmentCount;
+    } catch (error) {
+      console.error('Error in getAvailableClassesForStudent:', error);
+      console.error('Course ID:', course_id);
+      throw error;
+    }
   }
 }
 

@@ -11,7 +11,7 @@ class InstructorController {
   async listInstructors() {
     try {
       const instructors = await Instructor.findAll({
-        attributes: ['id', 'fullName'],
+        attributes: ['id', 'full_name'],
         where: { status: 'ACTIVE' }
       });
       return instructors;
@@ -21,86 +21,49 @@ class InstructorController {
     }
   }
 
-  async getCurrentInstructor(req, res) {
+  async getCurrentInstructor(req, res, next) {
     try {
-      if (!req || !req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Unauthorized'
-        });
-      }
-
-      console.log('Looking for instructor with userId:', req.user.id);
-
-      // First get the user to ensure we have the email
+      console.log('Getting current instructor for user:', req.user.id);
+      
       const user = await User.findByPk(req.user.id, {
         attributes: ['id', 'email']
       });
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
       const instructor = await Instructor.findOne({
-        where: { userId: req.user.id },
-        attributes: [
-          'id', 
-          'userId', 
-          'fullName', 
-          'phone', 
-          'address', 
-          'specialization', 
-          'bio',
-          'created_at',
-          'updated_at'
-        ]
+        where: { user_id: req.user.id }
       });
 
       if (!instructor) {
-        return res.status(404).json({
-          success: false,
-          message: 'Instructor profile not found'
-        });
+        throw new ApiError(404, 'Không tìm thấy thông tin giảng viên');
       }
 
-      // Combine instructor data with user email
-      const transformedData = {
+      const response = {
         id: instructor.id,
-        fullName: instructor.fullName,
-        email: user.email, // Get email directly from user
-        phone: instructor.phone || null,
-        address: instructor.address || null,
-        specialization: instructor.specialization || null,
-        bio: instructor.bio || null,
+        full_name: instructor.full_name,
+        email: user.email,
+        phone: instructor.phone || '',
+        address: instructor.address || '',
+        specialization: instructor.specialization || '',
+        bio: instructor.bio || '',
         created_at: instructor.created_at,
         updated_at: instructor.updated_at
       };
 
-      console.log('Transformed data:', JSON.stringify(transformedData, null, 2));
-
       return res.status(200).json({
         success: true,
-        data: transformedData
+        data: response
       });
-
     } catch (error) {
       console.error('Error in getCurrentInstructor:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      next(error);
     }
   }
 
   // Achievement methods
-  async getAchievements(instructorId) {
+  async getAchievements(instructor_id) {
     try {
       const achievements = await InstructorAchievement.findAll({
-        where: { instructorId },
+        where: { instructor_id },
         order: [['achievementDate', 'DESC']]
       });
       return achievements;
@@ -110,10 +73,10 @@ class InstructorController {
     }
   }
 
-  async createAchievement(instructorId, data) {
+  async createAchievement(instructor_id, data) {
     try {
       const achievement = await InstructorAchievement.create({
-        instructorId,
+        instructor_id,
         title: data.title,
         description: data.description,
         achievementDate: data.achievementDate
@@ -125,12 +88,58 @@ class InstructorController {
     }
   }
 
+  async updateAchievement(instructor_id, achievementId, data) {
+    try {
+      const achievement = await InstructorAchievement.findOne({
+        where: { 
+          id: achievementId,
+          instructor_id 
+        }
+      });
+
+      if (!achievement) {
+        throw new ApiError(404, 'Không tìm thấy thành tích');
+      }
+
+      await achievement.update({
+        title: data.title,
+        description: data.description,
+        achievementDate: data.achievementDate
+      });
+
+      return achievement;
+    } catch (error) {
+      console.error('Error in updateAchievement:', error);
+      throw new ApiError(500, 'Lỗi khi cập nhật thành tích');
+    }
+  }
+
+  async deleteAchievement(instructor_id, achievementId) {
+    try {
+      const achievement = await InstructorAchievement.findOne({
+        where: { 
+          id: achievementId,
+          instructor_id 
+        }
+      });
+
+      if (!achievement) {
+        throw new ApiError(404, 'Không tìm thấy thành tích');
+      }
+
+      await achievement.destroy();
+    } catch (error) {
+      console.error('Error in deleteAchievement:', error);
+      throw new ApiError(500, 'Lỗi khi xóa thành tích');
+    }
+  }
+
   // Certificate methods
-  async getCertificates(instructorId) {
+  async getCertificates(instructor_id) {
     try {
       const certificates = await InstructorCertificate.findAll({
-        where: { instructorId },
-        order: [['issueYear', 'DESC']]
+        where: { instructor_id },
+        order: [['issue_year', 'DESC']]
       });
       return certificates;
     } catch (error) {
@@ -139,13 +148,13 @@ class InstructorController {
     }
   }
 
-  async createCertificate(instructorId, data) {
+  async createCertificate(instructor_id, data) {
     try {
       const certificate = await InstructorCertificate.create({
-        instructorId,
+        instructor_id,
         name: data.name,
         issuer: data.issuer,
-        issueYear: data.issueYear
+        issue_year: data.issue_year
       });
       return certificate;
     } catch (error) {
@@ -154,12 +163,58 @@ class InstructorController {
     }
   }
 
+  async updateCertificate(instructor_id, certificateId, data) {
+    try {
+      const certificate = await InstructorCertificate.findOne({
+        where: { 
+          id: certificateId,
+          instructor_id 
+        }
+      });
+
+      if (!certificate) {
+        throw new ApiError(404, 'Không tìm thấy chứng chỉ');
+      }
+
+      await certificate.update({
+        name: data.name,
+        issuer: data.issuer,
+        issue_year: data.issue_year
+      });
+
+      return certificate;
+    } catch (error) {
+      console.error('Error in updateCertificate:', error);
+      throw new ApiError(500, 'Lỗi khi cập nhật chứng chỉ');
+    }
+  }
+
+  async deleteCertificate(instructor_id, certificateId) {
+    try {
+      const certificate = await InstructorCertificate.findOne({
+        where: { 
+          id: certificateId,
+          instructor_id 
+        }
+      });
+
+      if (!certificate) {
+        throw new ApiError(404, 'Không tìm thấy chứng chỉ');
+      }
+
+      await certificate.destroy();
+    } catch (error) {
+      console.error('Error in deleteCertificate:', error);
+      throw new ApiError(500, 'Lỗi khi xóa chứng chỉ');
+    }
+  }
+
   // Work History methods
-  async getWorkHistory(instructorId) {
+  async getWorkHistory(instructor_id) {
     try {
       const workHistory = await InstructorWorkHistory.findAll({
-        where: { instructorId },
-        order: [['startDate', 'DESC']]
+        where: { instructor_id },
+        order: [['start_date', 'DESC']]
       });
       return workHistory;
     } catch (error) {
@@ -168,14 +223,14 @@ class InstructorController {
     }
   }
 
-  async createWorkHistory(instructorId, data) {
+  async createWorkHistory(instructor_id, data) {
     try {
       const workHistory = await InstructorWorkHistory.create({
-        instructorId,
+        instructor_id,
         position: data.position,
         department: data.department,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        start_date: data.start_date,
+        end_date: data.end_date,
         responsibilities: data.responsibilities
       });
       return workHistory;
@@ -185,9 +240,61 @@ class InstructorController {
     }
   }
 
-  async updateInstructor(instructorId, data) {
+  async updateWorkHistory(instructor_id, historyId, data) {
     try {
-      const instructor = await Instructor.findByPk(instructorId, {
+      const workHistory = await InstructorWorkHistory.findOne({
+        where: { 
+          id: historyId,
+          instructor_id 
+        }
+      });
+
+      if (!workHistory) {
+        throw new ApiError(404, 'Không tìm thấy quá trình công tác');
+      }
+
+      await workHistory.update({
+        position: data.position,
+        department: data.department,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        responsibilities: data.responsibilities
+      });
+
+      return workHistory;
+    } catch (error) {
+      console.error('Error in updateWorkHistory:', error);
+      throw new ApiError(500, 'Lỗi khi cập nhật quá trình công tác');
+    }
+  }
+
+  async deleteWorkHistory(instructor_id, historyId) {
+    try {
+      const workHistory = await InstructorWorkHistory.findOne({
+        where: { 
+          id: historyId,
+          instructor_id 
+        }
+      });
+
+      if (!workHistory) {
+        throw new ApiError(404, 'Không tìm thấy quá trình công tác');
+      }
+
+      await workHistory.destroy();
+    } catch (error) {
+      console.error('Error in deleteWorkHistory:', error);
+      throw new ApiError(500, 'Lỗi khi xóa quá trình công tác');
+    }
+  }
+
+  async updateInstructor(req, res, next) {
+    try {
+      const instructor_id = req.params.id;
+      const updateData = req.body;
+
+      const instructor = await Instructor.findOne({
+        where: { id: instructor_id },
         include: [{
           model: User,
           attributes: ['email']
@@ -198,17 +305,19 @@ class InstructorController {
         throw new ApiError(404, 'Không tìm thấy thông tin giảng viên');
       }
 
-      // Cập nhật thông tin giảng viên
-      await instructor.update(data);
+      await instructor.update(updateData);
 
-      // Log để debug
       console.log('Updated instructor:', {
         id: instructor.id,
-        fullName: instructor.fullName,
+        full_name: instructor.full_name,
         email: instructor.User ? instructor.User.email : 'N/A'
       });
 
-      return instructor;
+      return res.status(200).json({
+        success: true,
+        data: instructor
+      });
+
     } catch (error) {
       console.error('Error in updateInstructor:', error);
       if (error instanceof ApiError) {

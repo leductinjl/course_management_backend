@@ -1,39 +1,48 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Grade = sequelize.define('Grade', {
+const TuitionPayment = sequelize.define('TuitionPayment', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  enrollmentId: {
+  student_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'students',
+      key: 'id'
+    }
+  },
+  enrollment_id: {
     type: DataTypes.UUID,
     references: {
       model: 'enrollments',
       key: 'id'
     }
   },
-  midtermGrade: DataTypes.DECIMAL(4, 2),
-  finalGrade: DataTypes.DECIMAL(4, 2),
-  lastUpdatedBy: {
-    type: DataTypes.UUID,
-    references: {
-      model: 'instructors',
-      key: 'id'
-    }
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
   },
-  verifiedBy: {
+  payment_method: DataTypes.STRING,
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'completed'
+  },
+  confirmed_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',
       key: 'id'
     }
-  }
+  },
+  notes: DataTypes.TEXT
 }, {
-  tableName: 'grades',
+  tableName: 'tuition_payments',
   timestamps: true,
+  createdAt: 'payment_date',
   updatedAt: 'updated_at'
 });
 
-module.exports = Grade; 
+module.exports = TuitionPayment; 

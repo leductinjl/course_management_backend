@@ -16,24 +16,24 @@ const Admin = sequelize.define('Admin', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  fullName: {
+  full_name: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  adminType: {
+  admin_type: {
     type: DataTypes.ENUM('super_admin', 'course_admin', 'user_admin', 'finance_admin'),
     allowNull: false
   },
   phone: DataTypes.STRING,
-  loginAttempts: {
+  login_attempts: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  isLocked: {
+  is_locked: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  lastLogin: DataTypes.DATE,
+  last_login: DataTypes.DATE,
   status: {
     type: DataTypes.STRING,
     defaultValue: 'active'

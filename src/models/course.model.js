@@ -46,14 +46,14 @@ const Course = sequelize.define('Course', {
       min: 0
     }
   },
-  createdBy: {
+  created_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',
       key: 'id'
     }
   },
-  updatedBy: {
+  updated_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',

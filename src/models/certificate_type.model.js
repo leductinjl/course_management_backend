@@ -13,7 +13,7 @@ const CertificateType = sequelize.define('CertificateType', {
   },
   description: DataTypes.TEXT,
   requirements: DataTypes.TEXT,
-  createdBy: {
+  created_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',

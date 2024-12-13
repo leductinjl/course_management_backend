@@ -1,48 +1,47 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const TuitionPayment = sequelize.define('TuitionPayment', {
+const Instructor = sequelize.define('Instructor', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  studentId: {
+  user_id: {
     type: DataTypes.UUID,
+    unique: true,
     references: {
-      model: 'students',
+      model: 'users',
       key: 'id'
     }
   },
-  enrollmentId: {
-    type: DataTypes.UUID,
-    references: {
-      model: 'enrollments',
-      key: 'id'
-    }
-  },
-  amount: {
-    type: DataTypes.DECIMAL(10, 2),
+  full_name: {
+    type: DataTypes.STRING,
     allowNull: false
   },
-  paymentMethod: DataTypes.STRING,
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'completed'
-  },
-  confirmedBy: {
+  phone: DataTypes.STRING,
+  address: DataTypes.TEXT,
+  specialization: DataTypes.TEXT,
+  bio: DataTypes.TEXT,
+  created_by: {
     type: DataTypes.UUID,
     references: {
       model: 'admins',
       key: 'id'
     }
   },
-  notes: DataTypes.TEXT
+  updated_by: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'admins',
+      key: 'id'
+    }
+  }
 }, {
-  tableName: 'tuition_payments',
+  tableName: 'instructors',
   timestamps: true,
-  createdAt: 'payment_date',
+  createdAt: 'created_at',
   updatedAt: 'updated_at'
 });
 
-module.exports = TuitionPayment; 
+module.exports = Instructor; 

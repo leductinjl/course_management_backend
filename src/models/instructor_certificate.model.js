@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Instructor = require('./Instructor');
+const Instructor = require('./instructor.model');
 
 const InstructorCertificate = sequelize.define('InstructorCertificate', {
   id: {
@@ -8,7 +8,7 @@ const InstructorCertificate = sequelize.define('InstructorCertificate', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  instructorId: {
+  instructor_id: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
@@ -24,7 +24,7 @@ const InstructorCertificate = sequelize.define('InstructorCertificate', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  issueYear: {
+  issue_year: {
     type: DataTypes.INTEGER,
     allowNull: false
   }
@@ -36,7 +36,7 @@ const InstructorCertificate = sequelize.define('InstructorCertificate', {
 });
 
 // Define the association here
-InstructorCertificate.belongsTo(Instructor, { foreignKey: 'instructorId' });
-Instructor.hasMany(InstructorCertificate, { foreignKey: 'instructorId' });
+InstructorCertificate.belongsTo(Instructor, { foreignKey: 'instructor_id' });
+Instructor.hasMany(InstructorCertificate, { foreignKey: 'instructor_id' });
 
 module.exports = InstructorCertificate;
