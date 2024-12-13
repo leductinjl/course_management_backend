@@ -1,4 +1,4 @@
-const { Student, User } = require('../models');
+const { Student, User, Enrollment, Class, Course, Instructor } = require('../models');
 const { ApiError } = require('../utils/apiError');
 const { validateStudentUpdate } = require('../validators/student.validator');
 
@@ -72,6 +72,65 @@ class StudentController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+
+  async getEnrolledCourses(studentId) {
+    try {
+      console.log('Getting enrolled courses for student:', studentId);
+      
+      const enrollments = await Enrollment.findAll({
+        where: { 
+          student_id: studentId,
+          status: 'enrolled'
+        },
+        include: [{
+          model: Class,
+          required: true,
+          attributes: ['id', 'class_code', 'schedule', 'room', 'start_date', 'end_date'],
+          include: [
+            {
+              model: Course,
+              required: true,
+              attributes: ['id', 'code', 'name', 'credits', 'type']
+            },
+            {
+              model: Instructor,
+              required: true,
+              attributes: ['id', 'full_name']
+            }
+          ]
+        }],
+        attributes: ['id', 'status', 'enrolled_at']
+      });
+
+      console.log('Found enrollments:', JSON.stringify(enrollments, null, 2));
+
+      // Format lại dữ liệu trả về
+      const formattedCourses = enrollments.map(enrollment => ({
+        id: enrollment.Class.Course.id,
+        name: enrollment.Class.Course.name,
+        code: enrollment.Class.Course.code,
+        credits: enrollment.Class.Course.credits,
+        type: enrollment.Class.Course.type,
+        class_id: enrollment.Class.id,
+        class_code: enrollment.Class.class_code,
+        instructor: enrollment.Class.Instructor.full_name,
+        schedule: enrollment.Class.schedule || 'Chưa cập nhật',
+        start_date: enrollment.Class.start_date || 'Chưa cập nhật',
+        end_date: enrollment.Class.end_date || 'Chưa cập nhật',
+        room: enrollment.Class.room || 'Chưa cập nhật',
+        status: enrollment.status === 'enrolled' ? 'Đang học' : 'Đã kết thúc',
+        enrolled_at: enrollment.enrolled_at
+      }));
+
+      console.log('Formatted courses:', JSON.stringify(formattedCourses, null, 2));
+
+      return formattedCourses;
+
+    } catch (error) {
+      console.error('Error in getEnrolledCourses:', error);
+      throw new ApiError(500, 'Không thể lấy danh sách môn học đã đăng ký', error);
     }
   }
 }

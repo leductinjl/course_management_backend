@@ -202,7 +202,6 @@ class EnrollmentController {
   // Thêm method để xem lịch sử đăng ký của học viên
   async getEnrollmentHistory(req, res, next) {
     try {
-      // Lấy thông tin student từ user_id
       const student = await Student.findOne({
         where: { user_id: req.user.id }
       });
@@ -215,6 +214,7 @@ class EnrollmentController {
         where: { student_id: student.id },
         include: [{
           model: Class,
+          attributes: ['id', 'class_code'],
           include: [{
             model: Course,
             attributes: ['id', 'name', 'code']
