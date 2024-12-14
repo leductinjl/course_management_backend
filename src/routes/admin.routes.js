@@ -7,6 +7,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
 const adminAuthMiddleware =  require('../middlewares/adminAuth.middleware')
 const courseController = require('../controllers/course.controller');
 const classController = require('../controllers/class.controller');
+const gradeController = require('../controllers/grade.controller');
 
 // Auth routes
 router.post('/auth/login', adminController.login);
@@ -48,5 +49,14 @@ router.post('/classes', adminAuthMiddleware, classController.createClass);
 router.get('/classes/:id', adminAuthMiddleware, classController.getClass);
 router.put('/classes/:id', adminAuthMiddleware, classController.updateClass);
 router.delete('/classes/:id', adminAuthMiddleware, classController.deleteClass);
+
+// Thêm route này vào phần Class management routes
+router.get('/classes/:id/students', adminAuthMiddleware, classController.getClassStudents);
+
+// Grade verification routes
+router.get('/grades/pending', adminAuthMiddleware, gradeController.getPendingGrades);
+router.post('/grades/verify/:id', adminAuthMiddleware, gradeController.verifyGrade);
+router.post('/grades/verify-bulk', adminAuthMiddleware, gradeController.verifyBulkGrades);
+router.get('/grades/class/:class_id', adminAuthMiddleware, gradeController.getClassGradesForAdmin);
 
 module.exports = router; 

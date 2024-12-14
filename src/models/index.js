@@ -20,6 +20,7 @@ const InstructorAchievement = require('./instructor_achievement.model');
 const InstructorCertificate = require('./instructor_certificate.model');
 const InstructorWorkHistory = require('./instructor_work_history.model');
 const EnrollmentHistory = require('./enrollment_history.model');
+const LessonProgress = require('./lesson_progress.model');
 
 // User Relations
 User.hasOne(Student, { 
@@ -205,6 +206,10 @@ Student.hasMany(EnrollmentHistory, {
   as: 'enrollment_histories'
 });
 
+// LessonProgress associations
+Class.hasMany(LessonProgress, { foreignKey: 'class_id' });
+LessonProgress.belongsTo(Class, { foreignKey: 'class_id' });
+
 module.exports = {
   sequelize,
   Admin,
@@ -227,5 +232,6 @@ module.exports = {
   InstructorAchievement,
   InstructorCertificate,
   InstructorWorkHistory,
-  EnrollmentHistory
+  EnrollmentHistory,
+  LessonProgress
 }; 

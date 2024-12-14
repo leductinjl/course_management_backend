@@ -6,17 +6,16 @@ const instructorTeachingRoutes = require('./instructor.teaching.routes');
 const authRoutes = require('./auth.routes');
 const studentRoutes = require('./student.routes');
 const enrollmentRoutes = require('./enrollment.routes');
-
-router.use('/api/admin', adminRoutes);
-
-
-router.use('/api/instructor', instructorRoutes);
-router.use('/api/instructor/teaching', instructorTeachingRoutes);
-
-router.use('/api/student', studentRoutes);
-router.use('/api/student/enrollments', enrollmentRoutes);
-
+const lessonProgressRoutes = require('./lessonProgress.routes');
+const classRoutes = require('./class.routes');
 
 router.use('/api/auth', authRoutes);
+router.use('/api/admin', adminRoutes);
+router.use('/api/instructor', instructorRoutes);
+router.use('/api/instructor/teaching', instructorTeachingRoutes);
+router.use('/api/student', studentRoutes);
+router.use('/api/student/enrollments', enrollmentRoutes);
+router.use('/api/class', classRoutes);
+router.use('/api/lesson-progress', lessonProgressRoutes);
 
 module.exports = router; 

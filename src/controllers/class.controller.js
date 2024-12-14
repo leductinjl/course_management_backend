@@ -1,5 +1,5 @@
 const { literal } = require('sequelize');
-const { Class, Course, Instructor, Admin, User, sequelize, ActivityLog, Enrollment, Student } = require('../models');
+const { Class, Course, Instructor, Admin, User, sequelize, Enrollment, Student, LessonProgress } = require('../models');
 const { validateClass } = require('../validators/class.validator');
 const { ApiError } = require('../utils/apiError');
 const { classActivityLogger } = require('../utils/activityLogger');
@@ -12,13 +12,11 @@ class ClassController {
             include: [
               {
                 model: Course,
-                attributes: ['id', 'name', 'code', 'credits', 'fee'],
-                required: true
+                attributes: ['id', 'name', 'code', 'credits', 'fee']
               },
               {
                 model: Instructor,
-                attributes: ['id', 'full_name', 'specialization'],
-                required: true
+                attributes: ['id', 'full_name', 'specialization']
               },
               {
                 model: Admin,
@@ -29,15 +27,31 @@ class ClassController {
             order: [['created_at', 'DESC']]
           });
           
-          console.log('Classes data:', JSON.stringify(classes, null, 2));
+          // Thêm thống kê cho mỗi lớp
+          const classesWithStats = await Promise.all(classes.map(async (classItem) => {
+            const enrollmentCount = await Enrollment.count({
+              where: { class_id: classItem.id }
+            });
+
+            const classData = classItem.toJSON();
+            return {
+              ...classData,
+              stats: {
+                enrollmentCount,
+                completedLessons: 0,
+                totalLessons: 0,
+                announcementCount: 0
+              }
+            };
+          }));
           
           res.json({
             success: true,
-            data: classes
+            data: classesWithStats
           });
         } catch (error) {
-          console.error('Error fetching classes:', error);
-          next(new ApiError(500, 'Error fetching classes'));
+          console.error('Error in listClasses:', error);
+          next(new ApiError(500, 'Error fetching classes', error));
         }
       }
     
@@ -405,7 +419,7 @@ class ClassController {
         data: { count }
       });
     } catch (error) {
-      next(new ApiError(500, 'Không thể lấy số lượng học viên'));
+      next(new ApiError(500, 'Không thể lấy số lư���ng học viên'));
     }
   }
 
@@ -600,18 +614,15 @@ class ClassController {
 
   async getClass(req, res, next) {
     try {
-      const { id } = req.params;
-      
-      const classData = await Class.findOne({
-        where: { id },
+      const classData = await Class.findByPk(req.params.id, {
         include: [
           {
             model: Course,
-            attributes: ['id', 'name', 'code', 'credits', 'fee'],
+            attributes: ['id', 'name', 'code', 'credits', 'fee']
           },
           {
             model: Instructor,
-            attributes: ['id', 'full_name', 'specialization'],
+            attributes: ['id', 'full_name', 'specialization']
           },
           {
             model: Admin,
@@ -622,16 +633,32 @@ class ClassController {
       });
 
       if (!classData) {
-        return next(new ApiError(404, 'Không tìm thấy lớp học'));
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy lớp học'
+        });
       }
+
+      const enrollmentCount = await Enrollment.count({
+        where: { class_id: classData.id }
+      });
+
+      const result = {
+        ...classData.toJSON(),
+        stats: {
+          enrollmentCount,
+          completedLessons: 0,
+          totalLessons: 0,
+          announcementCount: 0
+        }
+      };
 
       res.json({
         success: true,
-        data: classData
+        data: result
       });
     } catch (error) {
-      console.error('Error getting class:', error);
-      next(new ApiError(500, 'Error getting class details'));
+      next(error);
     }
   }
 
@@ -789,6 +816,57 @@ class ClassController {
       console.error('Error in getAvailableClassesForStudent:', error);
       console.error('Course ID:', course_id);
       throw error;
+    }
+  }
+
+  async getClassStudents(req, res, next) {
+    try {
+      const { id } = req.params;
+      console.log('Fetching students for class:', id);
+
+      const enrollments = await Enrollment.findAll({
+        where: {
+          class_id: id,
+          status: 'enrolled'  // Chỉ lấy enrolled
+        },
+        include: [
+          {
+            model: Student,
+            attributes: ['id', 'full_name', 'phone'],
+            required: true,
+            include: [{
+              model: User,
+              attributes: ['email']
+            }]
+          }
+        ],
+        order: [[{ model: Student }, 'full_name', 'ASC']]
+      });
+
+      // Log raw data để debug
+      console.log('Raw enrollments:', JSON.stringify(enrollments, null, 2));
+
+      const students = enrollments.map(enrollment => ({
+        enrollment_id: enrollment.id,
+        full_name: enrollment.Student.full_name,
+        email: enrollment.Student.User.email,
+        phone: enrollment.Student.phone || '-',
+        enrollment_date: enrollment.created_at,
+        status: enrollment.status // Thêm status vào để kiểm tra
+      }));
+
+      // Log formatted data để debug
+      console.log('Formatted students:', JSON.stringify(students, null, 2));
+
+      return res.json({
+        success: true,
+        data: students,
+        total: students.length
+      });
+
+    } catch (error) {
+      console.error('Error in getClassStudents:', error);
+      next(new ApiError(500, 'Không thể lấy danh sách học viên'));
     }
   }
 }

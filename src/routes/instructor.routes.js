@@ -3,6 +3,8 @@ const router = express.Router();
 const instructorController = require('../controllers/instructor.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 const instructorAuthMiddleware = require('../middlewares/instructorAuth.middleware');
+const gradeController = require('../controllers/grade.controller');
+const classGradeController = require('../controllers/classGrade.controller');
 
 // Debug middleware
 router.use((req, res, next) => {
@@ -199,6 +201,51 @@ router.delete('/:instructor_id/work-history/:historyId', async (req, res, next) 
 
 router.put('/:id', authMiddleware, instructorAuthMiddleware, (req, res, next) => {
   instructorController.updateInstructor(req, res, next);
+});
+
+// Grade routes
+router.get('/grades/class/:class_id', authMiddleware, instructorAuthMiddleware, (req, res, next) => {
+  classGradeController.getClassStudents(req, res, next);
+});
+
+router.put('/grades/:id', authMiddleware, instructorAuthMiddleware, async (req, res, next) => {
+  try {
+    const grade = await classGradeController.updateGrade(req.params.id, req.body);
+    res.json({
+      success: true,
+      data: grade
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/grades/:class_id/bulk-update', authMiddleware, instructorAuthMiddleware, (req, res, next) => {
+  classGradeController.updateGrades(req, res, next);
+});
+
+router.get('/grades/export/:class_id', authMiddleware, instructorAuthMiddleware, async (req, res, next) => {
+  try {
+    const exportData = await gradeController.exportGrades(req.params.class_id);
+    res.json({
+      success: true,
+      data: exportData
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/grades/import/:class_id', authMiddleware, instructorAuthMiddleware, async (req, res, next) => {
+  try {
+    const importResult = await gradeController.importGrades(req.params.class_id, req.body);
+    res.json({
+      success: true,
+      data: importResult
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router; 
