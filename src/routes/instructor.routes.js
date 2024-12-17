@@ -5,7 +5,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
 const instructorAuthMiddleware = require('../middlewares/instructorAuth.middleware');
 const gradeController = require('../controllers/grade.controller');
 const classGradeController = require('../controllers/classGrade.controller');
-
+const courseController = require('../controllers/course.controller');
 // Debug middleware
 router.use((req, res, next) => {
   console.log('Route accessed:', req.method, req.path);
@@ -247,5 +247,11 @@ router.post('/grades/import/:class_id', authMiddleware, instructorAuthMiddleware
     next(error);
   }
 });
+
+router.get('/courses/available', 
+  authMiddleware, 
+  instructorAuthMiddleware, 
+  courseController.getAvailableCoursesForInstructor // Sử dụng method mới
+);
 
 module.exports = router; 

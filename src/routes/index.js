@@ -8,11 +8,12 @@ const studentRoutes = require('./student.routes');
 const enrollmentRoutes = require('./enrollment.routes');
 const lessonProgressRoutes = require('./lessonProgress.routes');
 const classRoutes = require('./class.routes');
-
+const classRequestRoutes = require('./classRequest.routes');
 router.use('/api/auth', authRoutes);
 router.use('/api/admin', adminRoutes);
 router.use('/api/instructor', instructorRoutes);
 router.use('/api/instructor/teaching', instructorTeachingRoutes);
+router.use('/api/instructor/class-requests', classRequestRoutes);
 router.use('/api/student', studentRoutes);
 router.use('/api/student/enrollments', enrollmentRoutes);
 router.use('/api/class', classRoutes);

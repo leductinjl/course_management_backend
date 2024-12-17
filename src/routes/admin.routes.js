@@ -8,6 +8,7 @@ const adminAuthMiddleware =  require('../middlewares/adminAuth.middleware')
 const courseController = require('../controllers/course.controller');
 const classController = require('../controllers/class.controller');
 const gradeController = require('../controllers/grade.controller');
+const classRequestController = require('../controllers/classRequest.controller');
 
 // Auth routes
 router.post('/auth/login', adminController.login);
@@ -58,5 +59,9 @@ router.get('/grades/pending', adminAuthMiddleware, gradeController.getPendingGra
 router.post('/grades/verify/:id', adminAuthMiddleware, gradeController.verifyGrade);
 router.post('/grades/verify-bulk', adminAuthMiddleware, gradeController.verifyBulkGrades);
 router.get('/grades/class/:class_id', adminAuthMiddleware, gradeController.getClassGradesForAdmin);
+
+// Class request routes
+router.get('/class-requests', adminAuthMiddleware, classRequestController.getAllRequests);
+router.put('/class-requests/:id/review', adminAuthMiddleware, classRequestController.reviewRequest);
 
 module.exports = router; 

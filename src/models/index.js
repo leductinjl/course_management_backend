@@ -6,7 +6,7 @@ const CertificateRequirement = require('./certificate_requirement.model');
 const CertificateType = require('./certificate_type.model');
 const Class = require('./class.model');
 const Course = require('./course.model');
-const CourseRequest = require('./course_request.model');
+const ClassRequest = require('./class_request.model');
 const Enrollment = require('./enrollment.model');
 const ExamRegistration = require('./exam_registration.model');
 const ExamSession = require('./exam_session.model');
@@ -44,7 +44,10 @@ Admin.hasMany(Class, { foreignKey: 'created_by', as: 'createdClasses' });
 Admin.hasMany(ExamSession, { foreignKey: 'created_by', as: 'createdExamSessions' });
 Admin.hasMany(CertificateType, { foreignKey: 'created_by', as: 'createdCertificateTypes' });
 Admin.hasMany(Certificate, { foreignKey: 'issued_by', as: 'issuedCertificates' });
-Admin.hasMany(CourseRequest, { foreignKey: 'reviewed_by', as: 'reviewedRequests' });
+Admin.hasMany(ClassRequest, { 
+  foreignKey: 'reviewed_by', 
+  as: 'reviewedClassRequests'
+});
 
 // Additional Admin Relations
 AdminActivity.belongsTo(Admin, { foreignKey: 'admin_id' });
@@ -58,15 +61,15 @@ Admin.hasMany(Grade, { foreignKey: 'verified_by', as: 'verifiedGrades' });
 
 // Course and Class Relations
 Course.hasMany(Class, { foreignKey: 'course_id' });
-Course.hasMany(CourseRequest, { foreignKey: 'course_id' });
+Course.hasMany(ClassRequest, { foreignKey: 'course_id' });
 Course.hasMany(CertificateRequirement, { foreignKey: 'course_id' });
 Class.belongsTo(Course, { foreignKey: 'course_id' });
 Class.belongsTo(Instructor, { foreignKey: 'instructor_id' });
 Class.hasMany(Enrollment, { foreignKey: 'class_id' });
-
+  
 // Instructor Relations
 Instructor.hasMany(Class, { foreignKey: 'instructor_id' });
-Instructor.hasMany(CourseRequest, { foreignKey: 'instructor_id' });
+Instructor.hasMany(ClassRequest, { foreignKey: 'instructor_id' });
 Instructor.hasMany(SalaryPayment, { foreignKey: 'instructor_id' });
 Instructor.hasMany(Grade, { foreignKey: 'last_updated_by', as: 'gradesUpdated' });
 
@@ -129,9 +132,17 @@ Class.belongsTo(Admin, { as: 'creator', foreignKey: 'created_by' });
 
 // Course Relations
 Course.hasMany(Class, { foreignKey: 'course_id' });
+Course.hasMany(ClassRequest, { 
+  foreignKey: 'course_id',
+  as: 'classRequests'
+});
 
 // Instructor Relations
 Instructor.hasMany(Class, { foreignKey: 'instructor_id' });
+Instructor.hasMany(ClassRequest, { 
+  foreignKey: 'instructor_id',
+  as: 'classRequests'
+});
 
 // Admin Relations with Class
 Admin.hasMany(Class, { 
@@ -210,6 +221,22 @@ Student.hasMany(EnrollmentHistory, {
 Class.hasMany(LessonProgress, { foreignKey: 'class_id' });
 LessonProgress.belongsTo(Class, { foreignKey: 'class_id' });
 
+// ClassRequest associations
+ClassRequest.belongsTo(Course, { 
+  foreignKey: 'course_id',
+  as: 'course'
+});
+
+ClassRequest.belongsTo(Instructor, { 
+  foreignKey: 'instructor_id',
+  as: 'instructor'
+});
+
+ClassRequest.belongsTo(Admin, { 
+  foreignKey: 'reviewed_by',
+  as: 'reviewer'
+});
+
 module.exports = {
   sequelize,
   Admin,
@@ -219,7 +246,7 @@ module.exports = {
   CertificateType,
   Class,
   Course,
-  CourseRequest,
+  ClassRequest,
   Enrollment,
   ExamRegistration,
   ExamSession,

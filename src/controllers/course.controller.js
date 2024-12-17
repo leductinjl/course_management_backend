@@ -279,6 +279,38 @@ class CourseController {
       throw new ApiError(500, 'Lỗi khi lấy danh sách môn học');
     }
   }
+
+  async getAvailableCoursesForInstructor(req, res, next) {
+    try {
+      const courses = await Course.findAll({
+        where: {
+          status: ['active', 'draft'] // Chỉ lấy các khóa học đang mở hoặc sắp mở
+        },
+        attributes: [
+          'id', 
+          'code', 
+          'name', 
+          'description', 
+          'credits',
+          'type',
+          'status',
+          'fee'
+        ],
+        order: [
+          ['status', 'ASC'],
+          ['created_at', 'DESC']
+        ]
+      });
+
+      res.json({
+        success: true,
+        data: courses
+      });
+    } catch (error) {
+      console.error('Error in getAvailableCoursesForInstructor:', error);
+      next(new ApiError(500, 'Lỗi khi lấy danh sách khóa học'));
+    }
+  }
 }
 
 module.exports = new CourseController();
