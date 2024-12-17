@@ -1,13 +1,14 @@
 const { Class, Course, Enrollment, Student, EnrollmentHistory } = require('../models');
 const { ApiError } = require('../utils/apiError');
+const { checkScheduleConflict } = require('../utils/scheduleUtils');
 
 class EnrollmentController {
   async enrollClass(req, res, next) {
     try {
       const { class_id } = req.body;
       
-      // Kiểm tra lớp học tồn tại
-      const classItem = await Class.findOne({
+      // Lấy thông tin lớp học mới muốn đăng ký
+      const newClass = await Class.findOne({
         where: { id: class_id },
         include: [{ 
           model: Course,
@@ -15,11 +16,10 @@ class EnrollmentController {
         }]
       });
       
-      if (!classItem) {
+      if (!newClass) {
         throw new ApiError(404, 'Không tìm thấy lớp học');
       }
 
-      // Lấy thông tin student từ user_id
       const student = await Student.findOne({
         where: { user_id: req.user.id }
       });
@@ -28,8 +28,8 @@ class EnrollmentController {
         throw new ApiError(404, 'Không tìm thấy thông tin học viên');
       }
 
-      // Kiểm tra xem đã đăng ký lớp khác của cùng môn học chưa
-      const existingEnrollment = await Enrollment.findOne({
+      // Lấy TẤT CẢ các lớp học đã đăng ký (enrolled) của sinh viên
+      const enrolledClasses = await Enrollment.findAll({
         where: {
           student_id: student.id,
           status: 'enrolled'
@@ -37,12 +37,61 @@ class EnrollmentController {
         include: [{
           model: Class,
           required: true,
-          where: { course_id: classItem.Course.id }
+          include: [{
+            model: Course,
+            attributes: ['id', 'name', 'code']
+          }]
         }]
       });
 
-      if (existingEnrollment) {
-        throw new ApiError(400, 'Bạn đã đăng ký lớp khác của môn học này');
+      // Kiểm tra trùng lịch với TẤT CẢ các lớp đã đăng ký
+      for (const enrollment of enrolledClasses) {
+        const existingClass = enrollment.Class;
+        
+        console.log('Checking conflict with enrolled class:', {
+          existingClass: {
+            code: existingClass.Course.code,
+            name: existingClass.Course.name,
+            schedule: existingClass.schedule,
+            startDate: existingClass.start_date,
+            endDate: existingClass.end_date
+          },
+          newClass: {
+            code: newClass.Course.code,
+            name: newClass.Course.name,
+            schedule: newClass.schedule,
+            startDate: newClass.start_date,
+            endDate: newClass.end_date
+          }
+        });
+
+        const hasConflict = checkScheduleConflict(
+          newClass.schedule,
+          newClass.start_date,
+          newClass.end_date,
+          existingClass.schedule,
+          existingClass.start_date,
+          existingClass.end_date
+        );
+
+        if (hasConflict) {
+          throw new ApiError(
+            400, 
+            `Lịch học bị trùng với môn ${existingClass.Course.name} (${existingClass.Course.code})`
+          );
+        }
+      }
+
+      // Kiểm tra xem đã đăng ký lớp khác của cùng môn học chưa
+      const existingSameCourse = enrolledClasses.find(
+        enrollment => enrollment.Class.Course.id === newClass.Course.id
+      );
+
+      if (existingSameCourse) {
+        throw new ApiError(
+          400, 
+          `Bạn đã đăng ký lớp khác của môn ${newClass.Course.name} (${newClass.Course.code})`
+        );
       }
 
       // Kiểm tra sĩ số lớp
@@ -53,7 +102,7 @@ class EnrollmentController {
         }
       });
 
-      if (enrollmentCount >= classItem.capacity) {
+      if (enrollmentCount >= newClass.capacity) {
         throw new ApiError(400, 'Lớp học đã đầy');
       }
 
@@ -68,14 +117,12 @@ class EnrollmentController {
 
       let enrollment;
       if (previousEnrollment) {
-        // Cập nhật enrollment cũ
         enrollment = await previousEnrollment.update({
           status: 'enrolled',
           enrolled_at: new Date(),
           cancelled_at: null
         });
       } else {
-        // Tạo enrollment mới
         enrollment = await Enrollment.create({
           student_id: student.id,
           class_id,
