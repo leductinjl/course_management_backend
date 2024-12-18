@@ -252,11 +252,14 @@ class UserManagementController {
       
       if (!user) {
         return res.status(404).json({
-          message: 'User not found',
+          success: false,
+          message: 'Không tìm thấy người dùng',
           code: 'NOT_FOUND'
         });
       }
 
+      await user.destroy();
+      
       await adminActivityController.logActivity(
         req.admin.id,
         'DELETE_USER',
@@ -265,12 +268,34 @@ class UserManagementController {
         id
       );
 
-      await user.destroy();
-      res.json({ message: 'User deleted successfully' });
+      res.json({ 
+        success: true,
+        message: 'Xóa người dùng thành công' 
+      });
     } catch (error) {
       console.error('Error deleting user:', error);
+      
+      // Xử lý lỗi foreign key constraint
+      if (error.name === 'SequelizeForeignKeyConstraintError') {
+        let message = 'Không thể xóa người dùng này vì họ đang có dữ liệu liên quan trong hệ thống.';
+        
+        // Kiểm tra constraint cụ thể để đưa ra thông báo phù hợp
+        if (error.index === 'classes_instructor_id_fkey') {
+          message = 'Không thể xóa giảng viên này vì họ đang giảng dạy một hoặc nhiều lớp học.';
+        } else if (error.table === 'enrollments') {
+          message = 'Không thể xóa học viên này vì họ đang tham gia một hoặc nhiều lớp học.';
+        }
+        
+        return res.status(400).json({
+          success: false,
+          message,
+          code: 'DELETE_RESTRICTED'
+        });
+      }
+
       res.status(500).json({
-        message: 'Internal server error',
+        success: false,
+        message: 'Có lỗi xảy ra khi xóa người dùng',
         code: 'SERVER_ERROR'
       });
     }

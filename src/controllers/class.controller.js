@@ -223,23 +223,83 @@ class ClassController {
       }
     
       async deleteClass(req, res, next) {
+        const transaction = await sequelize.transaction();
         try {
           const { id } = req.params;
           const classToDelete = await Class.findByPk(id);
           
           if (!classToDelete) {
-            return next(new ApiError(404, 'Class not found'));
+            return next(new ApiError(404, 'Không tìm thấy lớp học'));
           }
     
-          await classToDelete.destroy();
-          await classActivityLogger.logDeletion(req.admin.id, classToDelete);
+          // Kiểm tra trạng thái lớp học
+          if (classToDelete.status !== 'upcoming' && classToDelete.status !== 'cancelled') {
+            return next(new ApiError(409, 'Không thể xóa lớp học đã bắt đầu hoặc đã kết thúc'));
+          }
+    
+          // Kiểm tra xem có học viên đăng ký không
+          const enrollmentCount = await Enrollment.count({
+            where: { class_id: id }
+          });
+    
+          if (enrollmentCount > 0) {
+            return next(new ApiError(409, 'Không thể xóa lớp học đã có học viên đăng ký', {
+              details: {
+                table: 'enrollments',
+                count: enrollmentCount
+              }
+            }));
+          }
+    
+          // Kiểm tra các ràng buộc khác (ví dụ: bài học, thông báo, v.v.)
+          const hasLessons = await LessonProgress.count({
+            where: { class_id: id }
+          });
+    
+          if (hasLessons > 0) {
+            return next(new ApiError(409, 'Không thể xóa lớp học đã có bài học', {
+              details: {
+                table: 'lessons',
+                count: hasLessons
+              }
+            }));
+          }
+    
+          // Thực hiện xóa
+          await classToDelete.destroy({ transaction });
+          await classActivityLogger.logDeletion(req.admin.id, classToDelete, transaction);
+          await transaction.commit();
     
           res.json({
             success: true,
-            message: 'Class deleted successfully'
+            message: 'Xóa lớp học thành công'
           });
+    
         } catch (error) {
-          next(new ApiError(500, 'Error deleting class'));
+          await transaction.rollback();
+          console.error('Error in deleteClass:', error);
+          
+          // Xử lý các lỗi cụ thể
+          if (error.name === 'SequelizeForeignKeyConstraintError') {
+            let errorMessage = 'Không thể xóa lớp học do có dữ liệu liên quan';
+            
+            if (error.table === 'enrollments') {
+              errorMessage = 'Không thể xóa lớp học đã có học viên đăng ký';
+            } else if (error.table === 'lessons') {
+              errorMessage = 'Không thể xóa lớp học đã có bài học';
+            }
+            
+            return next(new ApiError(409, errorMessage, {
+              details: {
+                constraint: error.index,
+                table: error.table
+              }
+            }));
+          }
+    
+          next(new ApiError(500, 'Lỗi khi xóa lớp học', {
+            details: error.message
+          }));
         }
       }
     
@@ -419,7 +479,7 @@ class ClassController {
         data: { count }
       });
     } catch (error) {
-      next(new ApiError(500, 'Không thể lấy số lư���ng học viên'));
+      next(new ApiError(500, 'Không thể lấy số lượng học viên'));
     }
   }
 

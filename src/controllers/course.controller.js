@@ -172,19 +172,46 @@ class CourseController {
     try {
       const course = await Course.findByPk(req.params.id);
       if (!course) {
-        return next(new ApiError(404, 'Course not found'));
+        return next(new ApiError(404, 'Không tìm thấy môn học'));
       }
 
-      await course.destroy();
-      await courseActivityLogger.logDeletion(req.admin.id, course);
+      try {
+        await course.destroy();
+        await courseActivityLogger.logDeletion(req.admin.id, course);
 
-      res.json({
-        success: true,
-        message: 'Course deleted successfully'
-      });
+        res.json({
+          success: true,
+          message: 'Xóa môn học thành công'
+        });
+      } catch (error) {
+        console.error('Error details:', error);
+        
+        // Xử lý lỗi foreign key constraint
+        if (error.name === 'SequelizeForeignKeyConstraintError') {
+          let errorMessage = 'Không thể xóa môn học vì còn dữ liệu liên quan';
+          
+          // Kiểm tra bảng liên quan để đưa ra thông báo cụ thể
+          if (error.table === 'classes') {
+            errorMessage = 'Không thể xóa môn học này vì đang có lớp học liên kết. Vui lòng xóa các lớp học trước.';
+          } else if (error.table === 'enrollment_histories') {
+            errorMessage = 'Không thể xóa môn học này vì đã có sinh viên đăng ký học. Vui lòng kiểm tra lại lịch sử đăng ký.';
+          }
+
+          return next(new ApiError(409, errorMessage, {
+            details: {
+              constraint: error.index,
+              table: error.table
+            }
+          }));
+        }
+
+        throw error; // Ném lỗi để xử lý ở catch block bên ngoài
+      }
     } catch (error) {
       console.error('Error deleting course:', error);
-      next(new ApiError(500, 'Error deleting course'));
+      next(new ApiError(500, 'Lỗi khi xóa môn học', {
+        details: error.message
+      }));
     }
   }
 
