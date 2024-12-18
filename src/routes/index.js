@@ -9,6 +9,8 @@ const enrollmentRoutes = require('./enrollment.routes');
 const lessonProgressRoutes = require('./lessonProgress.routes');
 const classRoutes = require('./class.routes');
 const classRequestRoutes = require('./classRequest.routes');
+const studentGradeRoutes = require('./student.grade.routes');
+
 router.use('/api/auth', authRoutes);
 router.use('/api/admin', adminRoutes);
 router.use('/api/instructor', instructorRoutes);
@@ -18,5 +20,6 @@ router.use('/api/student', studentRoutes);
 router.use('/api/student/enrollments', enrollmentRoutes);
 router.use('/api/class', classRoutes);
 router.use('/api/lesson-progress', lessonProgressRoutes);
+router.use('/api/student/grades', studentGradeRoutes);
 
 module.exports = router; 
