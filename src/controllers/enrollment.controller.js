@@ -1,4 +1,4 @@
-const { Class, Course, Enrollment, Student, EnrollmentHistory } = require('../models');
+const { Class, Course, Enrollment, Student, EnrollmentHistory, Tuition } = require('../models');
 const { ApiError } = require('../utils/apiError');
 const { checkScheduleConflict } = require('../utils/scheduleUtils');
 
@@ -139,6 +139,19 @@ class EnrollmentController {
         action: 'enrolled',
         action_date: new Date(),
         note: 'Đăng ký lớp học'
+      });
+
+      // Add this code to create tuition record
+      const course = await Course.findOne({
+        where: { id: newClass.course_id }
+      });
+
+      await Tuition.create({
+        student_id: student.id,
+        enrollment_id: enrollment.id,
+        amount: course.fee,
+        due_date: new Date(newClass.start_date.getTime() + (4 * 7 * 24 * 60 * 60 * 1000)), // 4 weeks after start date
+        status: 'pending'
       });
 
       res.json({

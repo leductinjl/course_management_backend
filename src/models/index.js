@@ -21,6 +21,7 @@ const InstructorCertificate = require('./instructor_certificate.model');
 const InstructorWorkHistory = require('./instructor_work_history.model');
 const EnrollmentHistory = require('./enrollment_history.model');
 const LessonProgress = require('./lesson_progress.model');
+const Tuition = require('./tuition.model');
 
 // User Relations
 User.hasOne(Student, { 
@@ -237,6 +238,63 @@ ClassRequest.belongsTo(Admin, {
   as: 'reviewer'
 });
 
+Tuition.belongsTo(Student, {
+  foreignKey: 'student_id',
+  as: 'student'
+});
+
+Tuition.belongsTo(Enrollment, {
+  foreignKey: 'enrollment_id',
+  as: 'enrollment'
+});
+
+Enrollment.belongsTo(Course, {
+  foreignKey: 'course_id',
+  as: 'course'
+});
+
+// Define associations
+Tuition.belongsTo(Class, {
+  foreignKey: 'class_id',
+  as: 'class'
+});
+
+Class.hasMany(Tuition, {
+  foreignKey: 'class_id',
+  as: 'tuitions'
+});
+
+Class.belongsTo(Course, {
+  foreignKey: 'course_id',
+  as: 'course'
+});
+
+Course.hasMany(Class, {
+  foreignKey: 'course_id',
+  as: 'classes'
+});
+
+// Define associations
+Tuition.hasMany(TuitionPayment, {
+  foreignKey: 'tuition_id',
+  as: 'payments'
+});
+
+TuitionPayment.belongsTo(Tuition, {
+  foreignKey: 'tuition_id',
+  as: 'tuition'
+});
+
+Student.hasMany(TuitionPayment, {
+  foreignKey: 'student_id',
+  as: 'payments'
+});
+
+TuitionPayment.belongsTo(Student, {
+  foreignKey: 'student_id',
+  as: 'student'
+});
+
 module.exports = {
   sequelize,
   Admin,
@@ -260,5 +318,6 @@ module.exports = {
   InstructorCertificate,
   InstructorWorkHistory,
   EnrollmentHistory,
-  LessonProgress
+  LessonProgress,
+  Tuition
 }; 

@@ -7,17 +7,19 @@ const TuitionPayment = sequelize.define('TuitionPayment', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  student_id: {
+  tuition_id: {
     type: DataTypes.UUID,
+    allowNull: false,
     references: {
-      model: 'students',
+      model: 'tuitions',
       key: 'id'
     }
   },
-  enrollment_id: {
+  student_id: {
     type: DataTypes.UUID,
+    allowNull: false,
     references: {
-      model: 'enrollments',
+      model: 'students',
       key: 'id'
     }
   },
@@ -25,23 +27,53 @@ const TuitionPayment = sequelize.define('TuitionPayment', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
-  payment_method: DataTypes.STRING,
+  payment_method: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isIn: [['bank_transfer', 'cash', 'e_wallet', 'credit_card', 'vnpay']]
+    }
+  },
+  payment_details: {
+    type: DataTypes.JSONB,
+    allowNull: true
+  },
+  transaction_id: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  full_transaction_id: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   status: {
     type: DataTypes.STRING,
-    defaultValue: 'completed'
+    allowNull: false,
+    defaultValue: 'pending',
+    validate: {
+      isIn: [['pending', 'processing', 'completed', 'failed', 'refunded']]
+    }
+  },
+  payment_date: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   confirmed_by: {
     type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'admins',
       key: 'id'
     }
-  },
-  notes: DataTypes.TEXT
+  }
 }, {
   tableName: 'tuition_payments',
   timestamps: true,
-  createdAt: 'payment_date',
+  createdAt: 'created_at',
   updatedAt: 'updated_at'
 });
 
