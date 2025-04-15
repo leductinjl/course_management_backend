@@ -165,5 +165,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Contact
 
 For any inquiries or feedback, please reach out to:
-- Email: [your.email@example.com](mailto:your.email@example.com)
-- GitHub: [yourusername](https://github.com/yourusername) 
+- Email: [leductin.ld@gmail.com](mailto:leductin.ld@gmail.com)
+- GitHub: [leductinjl](https://github.com/leductinjl) 
